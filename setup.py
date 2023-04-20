@@ -20,7 +20,10 @@ setup(
     ],
     install_requires=[
         "nibabel>=4.0.2",
-        "pydicom>=2.3.1"
+        "pydicom>=2.3.1",
+        "SimpleITK>=2.2.1",
+        "rt_utils>=1.2.7",
+        "pillow>=9.5.0",
     ],
     python_requires=">=3.7",
 )

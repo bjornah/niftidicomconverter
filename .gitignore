@@ -13,3 +13,6 @@ secrets.json
 *.log
 *.csv
 *.json
+
+# data folder
+data/
