@@ -184,3 +184,15 @@ def fetch_all_rois(rtstruct: RTStruct) -> np.ndarray:
     masks.insert(0, background)  # Add background to the mask
 
     return np.stack(masks, axis=-1)
+
+def get_array_from_itk_image(image: sitk.Image) -> np.ndarray:
+    """
+    Convert a SimpleITK image object to a NumPy array.
+
+    Args:
+        image: A SimpleITK image object.
+
+    Returns:
+        A NumPy array with the same dimensions and pixel values as the input image.
+    """
+    return sitk.GetArrayFromImage(image)
