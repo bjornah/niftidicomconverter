@@ -9,6 +9,15 @@ from shutil import copyfile
 import time
 
 def axes_swapping(array: np.array):
+    """
+    Swap the x and y axes of a 3D NumPy array.
+
+    Args:
+        array (np.array): A 3D NumPy array with shape (z, y, x).
+
+    Returns:
+        np.array: A copy of the input array with the x and y axes swapped, and shape (z, x, y).
+    """
     array = array.T
     array = np.swapaxes(array, 0, 1)
     # array = array[:,::-1,:]
@@ -19,7 +28,18 @@ def itk_resample_volume(
     new_spacing : tuple,
     interpolator = sitk.sitkLinear
     ) -> sitk.Image:
+    """
+    Resample a SimpleITK image to a new spacing using the specified interpolator.
 
+    Args:
+        img (sitk.Image): The input SimpleITK image to resample.
+        new_spacing (Tuple[float, float, float]): The new spacing to resample the image to, as a tuple of (x, y, z) values.
+        interpolator (Optional[sitk.InterpolatorEnum]): The interpolation method to use when resampling the image.
+            Default is sitk.sitkLinear.
+
+    Returns:
+        sitk.Image: The resampled SimpleITK image.
+    """
     original_spacing = img.GetSpacing()
     original_size = img.GetSize()
     new_size = [int(round(osz*ospc/nspc)) for osz,ospc,nspc in zip(original_size, original_spacing, new_spacing)]
@@ -42,7 +62,7 @@ def itk_resample_volume(
 
 def find_clusters_itk(mask: sitk.Image, max_object: int = 50) -> Tuple[sitk.Image, int]:
     """
-    Find how many clusters in the mask (ITK Image).
+    Find the number of separate clusters in the mask (ITK Image).
     Args:
         mask: a binary sitk.Image
         max_object: a threshold to make sure the # of object does not exceed max_object.
@@ -78,7 +98,24 @@ def find_clusters_itk(mask: sitk.Image, max_object: int = 50) -> Tuple[sitk.Imag
     return label_image, num
 
 def get_binary_rtss(nifti_pred: str, inference_threshold: float, new_spacing: tuple = None):
+    """
+    Load a NIfTI file containing an RTSS and apply a binary threshold to create a binary mask.
+    Used to convert prediction probabilities to binary classification. This is relevant, e.g.,
+    when an autosegmentation algorithm has yielded predictions that have been stored in a nifti
+    file format and that have not yet been binarised.
 
+    Args:
+        nifti_pred (str): The path to the NIfTI file containing the RTSS to be thresholded.
+        inference_threshold (float): The threshold value to use for the binary thresholding.
+        new_spacing (Optional[Tuple[float, float, float]]): The desired voxel spacing for the resampled image.
+            If provided, the image is resampled to this voxel spacing before thresholding.
+
+    Returns:
+        sitk.Image: The binary mask obtained by thresholding the RTSS.
+
+    Raises:
+        FileNotFoundError: If the specified NIfTI file does not exist.
+    """
     rtss = sitk.ReadImage(nifti_pred)
 
     if new_spacing is not None:
@@ -93,7 +130,19 @@ def get_binary_rtss(nifti_pred: str, inference_threshold: float, new_spacing: tu
     return rtss_binary
 
 def copy_file_safely(tmp_dir: str, src: str, dst_naming: str) -> str:
-    """Make sure file will not overwrite another file"""
+    """
+    Copy a file from the source path to a destination directory, ensuring the destination filename is unique.
+    This makes sure you do not overwrite another file.
+
+    Args:
+        tmp_dir (str): The path to the temporary directory where the file will be copied.
+        src (str): The path to the source file to be copied.
+        dst_naming (str): The desired filename for the copied file.
+
+    Returns:
+        str: The path to the copied file, including the unique filename suffix if necessary.
+    """
+    
     dst = None
 
     try:
@@ -109,7 +158,17 @@ def copy_file_safely(tmp_dir: str, src: str, dst_naming: str) -> str:
     return dst
 
 def fetch_all_rois(rtstruct: RTStruct) -> np.ndarray:
+    """
+    Fetch all ROI masks from an RTStruct object and combine them into a 3D numpy array.
 
+    Args:
+        rtstruct (RTStruct): The RTStruct object containing the ROIs to be fetched.
+
+    Returns:
+        np.ndarray: A 3D numpy array containing the binary masks for all ROIs in the RTStruct object.
+            The array has shape (Z, Y, X, N), where Z, Y, and X are the dimensions of the image and N
+            is the number of ROIs, including the background.
+    """
     masks = []
     roi_names = rtstruct.get_roi_names()
 
@@ -125,3 +184,15 @@ def fetch_all_rois(rtstruct: RTStruct) -> np.ndarray:
     masks.insert(0, background)  # Add background to the mask
 
     return np.stack(masks, axis=-1)
+
+def get_array_from_itk_image(image: sitk.Image) -> np.ndarray:
+    """
+    Convert a SimpleITK image object to a NumPy array.
+
+    Args:
+        image: A SimpleITK image object.
+
+    Returns:
+        A NumPy array with the same dimensions and pixel values as the input image.
+    """
+    return sitk.GetArrayFromImage(image)
