@@ -11,7 +11,7 @@ setup(
     description="A package for easy conversion between nifti and dicom file formats for medical imaging tasks",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    # url="https://github.com/yourusername/my_deep_learning_package",
+    url="https://github.com/bjornah/niftidicomconverter",
     packages=find_packages("src"),
     package_dir={"": "src"},
     classifiers=[
