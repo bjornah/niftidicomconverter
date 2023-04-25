@@ -16,3 +16,5 @@ secrets.json
 
 # data folder
 data/
+
+dist/
