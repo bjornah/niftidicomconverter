@@ -4,10 +4,10 @@ from typing import List, Union
 
 from rt_utils import RTStructBuilder
 
-from niftidicomconverter.dicomhandling import load_dicom_images, save_itk_image_as_nifti_sitk
+from niftidicomconverter.dicomhandling import load_dicom_images, save_itk_image_as_nifti_sitk, load_dicom_images_pydicom, save_dicom_to_nifti_nib
 from niftidicomconverter.utils import fetch_all_rois
 
-def convert_dicom_to_nifti(dicom_path: Union[str, List[str]], file_path: str, **kwargs) -> None:
+def convert_dicom_to_nifti(dicom_path: Union[str, List[str]], file_path: str, loader: str = 'sitk', **kwargs) -> None:
     """
     Converts a DICOM series to a NIfTI file.
 
@@ -26,8 +26,12 @@ def convert_dicom_to_nifti(dicom_path: Union[str, List[str]], file_path: str, **
     Raises:
         RuntimeError: If the DICOM series could not be read or the NIfTI file could not be saved.
     """
-    image_itk = load_dicom_images(dicom_path, **kwargs)
-    save_itk_image_as_nifti_sitk(image_itk, file_path)
+    if loader=='sitk':
+        image_itk = load_dicom_images(dicom_path, **kwargs)
+        save_itk_image_as_nifti_sitk(image_itk, file_path)
+    else:
+        pydicom_data = load_dicom_images_pydicom(dicom_path, **kwargs)
+        save_dicom_to_nifti_nib(pydicom_data, file_path)
 
 def convert_dicom_rtss_to_nifti(
     dicom_folder: str,

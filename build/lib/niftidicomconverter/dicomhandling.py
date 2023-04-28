@@ -1,12 +1,14 @@
-import SimpleITK as sitk
-from typing import List, Union, Optional
 import os
-import pydicom
-import matplotlib.pyplot as plt
+
 import numpy as np
+import matplotlib.pyplot as plt
 import SimpleITK as sitk
-from typing import Tuple, Optional
 import nibabel as nib
+
+import pydicom
+import scipy.ndimage
+
+from typing import Tuple, Optional, List, Union
 
 def check_itk_image(image: sitk.Image) -> bool:
     """
@@ -340,3 +342,190 @@ def permute_itk_axes(image, permute_axes=[1,0,2]):
     # apply the filter to the image
     image = permute_filter.Execute(image)
     return image
+
+# below this point we have similar functions, but using pydicom instead of sitk
+###################### 
+
+def resample_volume_pydicom(image: np.ndarray, spacing: np.ndarray, new_spacing: Tuple[float, float, float], order: int = 3) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Resample a 3D image to a new voxel spacing.
+
+    Args:
+        image (np.ndarray): A 3D numpy array representing the input image.
+        spacing (np.ndarray): A 3-element numpy array representing the current voxel spacing of the input image.
+        new_spacing (Tuple[float, float, float]): A 3-element tuple representing the desired voxel spacing of the output image.
+        order (int): The order of interpolation used to resample the image. Default is 3.
+
+    Returns:
+        A tuple containing the resampled 3D image and its new voxel spacing.
+    """
+    resize_factor = spacing / np.array(new_spacing)
+    new_shape = np.round(image.shape * resize_factor)
+    new_spacing = spacing / resize_factor
+    image = scipy.ndimage.interpolation.zoom(image, resize_factor, order=order)
+    return image, new_spacing
+
+
+
+def orient_volume_pydicom(image: np.ndarray, orientation: str) -> np.ndarray:
+    """
+    Orient a 3D image according to a desired axes orientation.
+
+    Args:
+        image (np.ndarray): A 3D numpy array representing the input image.
+        orientation (str): A string representing the desired axes orientation of the output image.
+                           Valid values are "RAS", "LPS", "RAI", "LPI", "ARS", "PRS", "AIP", "PIP".
+
+    Returns:
+        A 3D numpy array representing the oriented image.
+    """
+    directions = {
+        'RAS': ((0, 1, 2), (1, 0, 0), (0, 1, 0), (0, 0, 1)),
+        'LPS': ((0, 1, 2), (-1, 0, 0), (0, -1, 0), (0, 0, 1)),
+        'RAI': ((0, 1, 2), (1, 0, 0), (0, 0, -1), (0, -1, 0)),
+        'LPI': ((0, 1, 2), (-1, 0, 0), (0, 0, -1), (0, 1, 0)),
+        'ARS': ((1, 0, 2), (0, 1, 0), (1, 0, 0), (0, 0, 1)),
+        'PRS': ((1, 0, 2), (0, -1, 0), (1, 0, 0), (0, 0, 1)),
+        'AIP': ((1, 0, 2), (0, 1, 0), (0, 0, 1), (0, 0, -1)),
+        'PIP': ((1, 0, 2), (0, -1, 0), (0, 0, -1), (0, 1, 0))
+    }
+
+    if orientation not in directions:
+        raise ValueError(f"Invalid orientation '{orientation}'. Valid orientations are {list(directions.keys())}.")
+
+    permute_axes, transpose_matrix, flip_matrix, _ = directions[orientation]
+    image = np.transpose(image, permute_axes)
+    image = np.matmul(transpose_matrix, image)
+    image = np.flip(image, flip_matrix)
+    return image
+
+
+def load_dicom_images_pydicom(dicom_path: Union[str, List[str]], new_spacing: Optional[Tuple[float, float, float]] = None, 
+                      orientation: Optional[str] = None, permute_axes: Optional[List[int]] = None) -> np.ndarray:
+    """
+    Load a series of DICOM images into a numpy array from a list of DICOM file paths,
+    a path to a single DICOM file, or the path to a directory containing DICOM files from a single
+    series.
+
+    The function checks for consistency of metadata in the DICOM files. Also exluces RTStruct files.
+    
+    In case of inconsistent slice widths, will automatically resample voxel spacing to (1,1,1) mm.
+
+
+    Args:
+        dicom_path (Union[str, List[str]]): A list of file paths for the DICOM files, a single path, or a directory.
+        new_spacing (Optional[Tuple[float, float, float]]): The desired voxel spacing of the output image. 
+                                                           If provided, the image will be resampled to this resolution.
+                                                           Default is None, which means the image will not be resampled.
+        orientation (Optional[List[int]]): A list of three integers that specifies the desired axes orientation 
+                                           of the output image. Default is None, which means the original orientation 
+                                           will be preserved.
+        permute_axes (Optional[List[int]]): A list of three integers that specifies the desired order of axes in the 
+                                            output image.
+    Returns:
+        A numpy array containing the loaded DICOM images.
+
+    Raises:
+        RuntimeError: If no files were found, if the input path is not valid or if the series could not be read.
+        ValueError: If the DICOM metadata is not consistent across all files, or if the input arguments are not valid.
+    """ 
+    if os.path.isdir(dicom_path):
+        dicom_files = get_dicom_files(dicom_path)
+    else:
+        if isinstance(dicom_path, str):
+            dicom_files = [dicom_path]
+        else:
+            dicom_files = dicom_path
+
+    if not check_dicom_metadata_consistency(dicom_files):
+        raise RuntimeError("Inconsistent DICOM files! 'PatientID', 'StudyInstanceUID', 'SeriesInstanceUID', or 'Modality' are not the same across all files")
+
+    # Check if the input DICOM file list exists
+    if not dicom_files:
+        raise RuntimeError("Empty DICOM file list.")
+
+    # Load DICOM series
+    dicom_files = sorted(dicom_files, key=lambda s: pydicom.dcmread(s).InstanceNumber)
+    slices = [pydicom.dcmread(s) for s in dicom_files]
+    pixel_array = np.stack([s.pixel_array for s in slices])
+    image = pixel_array.astype(np.float32)
+    image[image == -2000] = 0
+    
+    # Calculate voxel spacing
+    spacing = np.array([s.SliceThickness] + s.PixelSpacing, dtype=np.float32)
+    
+    # Resample voxel spacing
+    if new_spacing is not None:
+        print(f'resampling image to resolution {new_spacing} mm')
+        image, spacing = resample_volume_pydicom(image, spacing, new_spacing)
+
+    # Check for inconsistent slice thickness and resample to (1, 1, 1) mm
+    if np.std(spacing) > 1e-4:
+        print('resampling image due to inconsistencies in original image')
+        print('setting new spacing to (1,1,1) mm')
+        image, spacing = resample_volume_pydicom(image, spacing, (1, 1, 1))
+
+    # Transpose axes if necessary
+    if permute_axes is not None:
+        image = np.transpose(image, permute_axes)
+
+    # Orient image if necessary
+    if orientation is not None:
+        image = orient_volume_pydicom(image, orientation)
+
+    # Add channel dimension if necessary
+    if image.ndim == 3:
+        image = np.expand_dims(image, axis=0)
+
+    return image
+
+def save_dicom_to_nifti_nib(dicom_data: pydicom.dataset.FileDataset, nifti_file_path: str) -> Tuple[bool, str]:
+    """
+    Convert a PyDICOM dataset to a NIfTI file using NiBabel.
+
+    :param dicom_data: The PyDICOM dataset to convert.
+    :type dicom_data: pydicom.dataset.FileDataset
+    :param nifti_file_path: The desired path for the NIfTI file.
+    :type nifti_file_path: str
+    :return: A tuple indicating whether the conversion was successful (True or False) and a message describing the result.
+    :rtype: Tuple[bool, str]
+    """
+    try:
+        if hasattr(dicom_data, 'affine'):
+            affine = dicom_data.affine
+        else:
+            try:
+                affine = calculate_affine_from_pydicom(dicom_data)
+            except:
+                print('cannot calculate affine from dicom, set it to dentity matrix')
+                affine = np.ones((4,4))
+        nifti_data = nib.nifti1.Nifti1Image(dicom_data.pixel_array, affine)
+        nib.save(nifti_data, nifti_file_path)
+        print(f"Conversion successful. NIfTI file saved at {nifti_file_path}")
+        return True
+    except Exception as e:
+        error_message = f"Error converting DICOM to NIfTI: {str(e)}"
+        print(error_message)
+        return False
+    
+def calculate_affine_from_pydicom(dicom_image: pydicom.dataset.FileDataset) -> np.ndarray:
+    """
+    Calculate the affine matrix for a PyDICOM image.
+
+    :param dicom_image: The PyDICOM image for which to calculate the affine matrix.
+    :type dicom_image: pydicom.dataset.FileDataset
+    :return: The affine matrix for the PyDICOM image.
+    :rtype: numpy.ndarray
+    """
+    # Extract the necessary metadata from the DICOM image
+    spacing = np.array(dicom_image.PixelSpacing + [dicom_image.SliceThickness], dtype=float)
+    orientation = np.array(dicom_image.ImageOrientationPatient, dtype=float).reshape(2, 3)
+    origin = np.array(dicom_image.ImagePositionPatient + [1], dtype=float)
+
+    # Calculate the affine matrix
+    affine = np.zeros((4, 4))
+    affine[:3, :3] = np.matmul(orientation, np.diag(spacing))
+    affine[:3, 3] = origin[:3]
+    affine[3, 3] = 1.0
+
+    return affine
