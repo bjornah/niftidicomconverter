@@ -23,43 +23,6 @@ def axes_swapping(array: np.array):
     # array = array[:,::-1,:]
     return array
 
-def itk_resample_volume(
-    img: sitk.Image, 
-    new_spacing : tuple,
-    interpolator = sitk.sitkLinear
-    ) -> sitk.Image:
-    """
-    Resample a SimpleITK image to a new spacing using the specified interpolator.
-
-    Args:
-        img (sitk.Image): The input SimpleITK image to resample.
-        new_spacing (Tuple[float, float, float]): The new spacing to resample the image to, as a tuple of (x, y, z) values.
-        interpolator (Optional[sitk.InterpolatorEnum]): The interpolation method to use when resampling the image.
-            Default is sitk.sitkLinear.
-
-    Returns:
-        sitk.Image: The resampled SimpleITK image.
-    """
-    original_spacing = img.GetSpacing()
-    original_size = img.GetSize()
-    new_size = [int(round(osz*ospc/nspc)) for osz,ospc,nspc in zip(original_size, original_spacing, new_spacing)]
-    args = [img, new_size, sitk.Transform(), interpolator,
-            img.GetOrigin(), new_spacing, img.GetDirection(), 0,
-            # 3]
-            img.GetPixelID()]
-    return sitk.Resample(*args)
-
-# def load_nifti_pred(nifti_pred_file: str, new_spacing: tuple = (1.0, 1.0, 1.0)):
-#     '''Loads nifti file with predictions using sitk and rotates it so that it matches dicom orientation.
-    
-#     Args:
-#         nifti_file (str): Path to nifti file
-#         new_spacing (tuple): The desired spatial spacing of the voxels. DeepMedic has been trained using a resolution of (1,1,1)'''
-#     nifti_pred = sitk.ReadImage(nifti_pred_file)
-#     nifti_pred = itk_resample_volume(nifti_pred, new_spacing=new_spacing) # this just resamples the image
-#     nifti_pred_data = axes_swapping(sitk.GetArrayFromImage(nifti_pred))
-#     return nifti_pred_data
-
 def find_clusters_itk(mask: sitk.Image, max_object: int = 50) -> Tuple[sitk.Image, int]:
     """
     Find the number of separate clusters in the mask (ITK Image).
@@ -196,3 +159,41 @@ def get_array_from_itk_image(image: sitk.Image) -> np.ndarray:
         A NumPy array with the same dimensions and pixel values as the input image.
     """
     return sitk.GetArrayFromImage(image)
+
+
+# def itk_resample_volume(
+#     img: sitk.Image, 
+#     new_spacing : tuple,
+#     interpolator = sitk.sitkLinear
+#     ) -> sitk.Image:
+#     """
+#     Resample a SimpleITK image to a new spacing using the specified interpolator.
+
+#     Args:
+#         img (sitk.Image): The input SimpleITK image to resample.
+#         new_spacing (Tuple[float, float, float]): The new spacing to resample the image to, as a tuple of (x, y, z) values.
+#         interpolator (Optional[sitk.InterpolatorEnum]): The interpolation method to use when resampling the image.
+#             Default is sitk.sitkLinear.
+
+#     Returns:
+#         sitk.Image: The resampled SimpleITK image.
+#     """
+#     original_spacing = img.GetSpacing()
+#     original_size = img.GetSize()
+#     new_size = [int(round(osz*ospc/nspc)) for osz,ospc,nspc in zip(original_size, original_spacing, new_spacing)]
+#     args = [img, new_size, sitk.Transform(), interpolator,
+#             img.GetOrigin(), new_spacing, img.GetDirection(), 0,
+#             # 3]
+#             img.GetPixelID()]
+#     return sitk.Resample(*args)
+
+# def load_nifti_pred(nifti_pred_file: str, new_spacing: tuple = (1.0, 1.0, 1.0)):
+#     '''Loads nifti file with predictions using sitk and rotates it so that it matches dicom orientation.
+    
+#     Args:
+#         nifti_file (str): Path to nifti file
+#         new_spacing (tuple): The desired spatial spacing of the voxels. DeepMedic has been trained using a resolution of (1,1,1)'''
+#     nifti_pred = sitk.ReadImage(nifti_pred_file)
+#     nifti_pred = itk_resample_volume(nifti_pred, new_spacing=new_spacing) # this just resamples the image
+#     nifti_pred_data = axes_swapping(sitk.GetArrayFromImage(nifti_pred))
+#     return nifti_pred_data
