@@ -110,7 +110,7 @@ def orient_volume_pydicom(image: np.ndarray, orientation: str) -> np.ndarray:
 
 
 def load_dicom_images_pydicom(paths: Union[str, List[str]], new_spacing: Optional[Tuple[float, float, float]] = None, 
-                      orientation: Optional[str] = None, permute_axes: Optional[List[int]] = None) -> pydicom.dataset.FileDataset:
+                      orientation: Optional[str] = None, permute_axes: Optional[List[int]] = None, **kwargs) -> pydicom.dataset.FileDataset:
     """
     Loads DICOM image files into a single DICOM image dataset using the Pydicom library.
 
@@ -145,7 +145,7 @@ def load_dicom_images_pydicom(paths: Union[str, List[str]], new_spacing: Optiona
     # Sort files by instance number
     slices = []
     for path in paths:
-        dcm = pydicom.dcmread(path)
+        dcm = pydicom.dcmread(path, **kwargs)
         slices.append(dcm)
 
     slices.sort(key=lambda x: x.InstanceNumber)
