@@ -108,9 +108,42 @@ def orient_volume_pydicom(image: np.ndarray, orientation: str) -> np.ndarray:
     image = np.flip(image, flip_matrix)
     return image
 
+import pydicom
+from pydicom.encaps import encapsulate
+
+def convert_photometric_interpretation_pydicom(dcm: pydicom.dataset.FileDataset, target_interpretation: str) -> pydicom.dataset.FileDataset:
+    """
+    Convert the photometric interpretation of a Pydicom dataset to the specified target interpretation.
+
+    Args:
+        dcm (pydicom.dataset.FileDataset): The input Pydicom dataset.
+        target_interpretation (str): The target photometric interpretation, either 'MONOCHROME1' or 'MONOCHROME2'.
+
+    Returns:
+        A Pydicom dataset.FileDataset with the updated photometric interpretation and pixel data.
+
+    Raises:
+        ValueError: If the target photometric interpretation is not supported.
+    """
+    current_interpretation = dcm.PhotometricInterpretation
+
+    if current_interpretation not in ['MONOCHROME1', 'MONOCHROME2']:
+        raise ValueError(f"Unsupported photometric interpretation '{current_interpretation}'")
+
+    if target_interpretation not in ['MONOCHROME1', 'MONOCHROME2']:
+        raise ValueError(f"Unsupported target photometric interpretation '{target_interpretation}'")
+
+    if current_interpretation != target_interpretation:
+        modified_pixel_array = (np.iinfo(dcm.pixel_array.dtype).max - dcm.pixel_array).astype(dcm.pixel_array.dtype)
+        dcm.PixelData = encapsulate([modified_pixel_array.tostring()])
+        dcm.PhotometricInterpretation = target_interpretation
+
+    return dcm
+
 
 def load_dicom_images_pydicom(paths: Union[str, List[str]], new_spacing: Optional[Tuple[float, float, float]] = None, 
-                      orientation: Optional[str] = None, permute_axes: Optional[List[int]] = None, **kwargs) -> pydicom.dataset.FileDataset:
+                      orientation: Optional[str] = None, permute_axes: Optional[List[int]] = None, 
+                      photometric_interpretation: Optional[str] = None, **kwargs) -> pydicom.dataset.FileDataset:
     """
     Loads DICOM image files into a single DICOM image dataset using the Pydicom library.
 
@@ -159,6 +192,10 @@ def load_dicom_images_pydicom(paths: Union[str, List[str]], new_spacing: Optiona
         image.NumberOfFrames = combined_pixel_array.shape[2]
     else:
         image = slices[0]
+    
+    # Convert photometric interpretation if specified
+    if photometric_interpretation is not None:
+        image = convert_photometric_interpretation_pydicom(image, photometric_interpretation)
     
     # calculate voxel spacing
     if len(slices[0].pixel_array.shape) == 3:
@@ -259,3 +296,24 @@ def calculate_affine_from_pydicom(dicom_image: pydicom.dataset.FileDataset) -> n
     affine[3, 3] = 1.0
 
     return affine
+
+def pydicom_to_simpleitk(dcm: pydicom.dataset.FileDataset) -> sitk.Image:
+    """
+    Convert a Pydicom dataset to a SimpleITK image object.
+
+    Args:
+        dcm (pydicom.dataset.FileDataset): The input Pydicom dataset.
+
+    Returns:
+        A SimpleITK image object with the same pixel data and metadata as the input Pydicom dataset.
+    """
+    pixel_array = dcm.pixel_array.astype(np.float32)
+    image = sitk.GetImageFromArray(pixel_array)
+
+    for key, value in dcm.items():
+        if hasattr(sitk, key):
+            setattr(image, key, value)
+        else:
+            image.SetMetaData(key, str(value))
+
+    return image

@@ -5,6 +5,7 @@ import SimpleITK as sitk
 import nibabel as nib
 
 import pydicom
+import tempfile
 
 from typing import Tuple, Optional, List, Union
 
@@ -103,35 +104,80 @@ def check_dicom_metadata_consistency(dicom_files: List[str]) -> bool:
 
     return True
 
+def convert_photometric_interpretation(image: sitk.Image, target_interpretation: str) -> sitk.Image:
+    """
+    Convert the photometric interpretation of a SimpleITK image between MONOCHROME1 and MONOCHROME2.
+
+    This function reads the image's metadata to determine its current photometric interpretation.
+    If the current and target interpretations are different, it inverts the grayscale intensities
+    and updates the metadata accordingly.
+
+    Args:
+        image (sitk.Image): The input SimpleITK image with MONOCHROME1 or MONOCHROME2 photometric interpretation.
+        target_interpretation (str): The desired photometric interpretation ('MONOCHROME1' or 'MONOCHROME2').
+
+    Returns:
+        sitk.Image: The converted SimpleITK image with the desired photometric interpretation.
+
+    Raises:
+        RuntimeError: If the input image does not have the '0028|0004' (Photometric Interpretation) metadata key.
+        ValueError: If the current or target photometric interpretation is not supported (i.e., not 'MONOCHROME1' or 'MONOCHROME2').
+    """
+    if not image.HasMetaDataKey('0028|0004'):
+        raise RuntimeError("Input image does not have the '0028|0004' (Photometric Interpretation) metadata key")
+
+    current_interpretation = image.GetMetaData('0028|0004').strip()
+
+    if current_interpretation not in ['MONOCHROME1', 'MONOCHROME2']:
+        raise ValueError(f"Unsupported photometric interpretation '{current_interpretation}'")
+
+    if target_interpretation not in ['MONOCHROME1', 'MONOCHROME2']:
+        raise ValueError(f"Unsupported target photometric interpretation '{target_interpretation}'")
+
+    if current_interpretation != target_interpretation:
+        image_arr = sitk.GetArrayFromImage(image)
+        inverted_arr = np.max(image_arr) - image_arr
+        image = sitk.GetImageFromArray(inverted_arr)
+        image.SetMetaData('0028|0004', target_interpretation)
+
+    return image
+
+
+
 def load_dicom_images(dicom_path: Union[str, List[str]], new_spacing: Optional[Tuple[float, float, float]] = None, 
-                      orientation: Optional[str] = None, permute_axes: Optional[List[int]] = None) -> sitk.Image:
+                      orientation: Optional[str] = None, permute_axes: Optional[List[int]] = None, 
+                      photometric_interpretation: Optional[str] = 'MONOCHROME2') -> sitk.Image:
     """
     Load a series of DICOM images into a SimpleITK image object from a list of DICOM file paths,
     a path to a single DICOM file, or the path to a directory containing DICOM files from a single
     series.
 
-    The function checks for consistency of metadata in the DICOM files. Also exluces RTStruct files.
+    The function checks for consistency of metadata in the DICOM files. Also excludes RTStruct files.
     
     In case of inconsistent slice widths, will automatically resample voxel spacing to (1,1,1) mm.
-
 
     Args:
         dicom_path (Union[str, List[str]]): A list of file paths for the DICOM files, a single path, or a directory.
         new_spacing (Optional[Tuple[float, float, float]]): The desired voxel spacing of the output image. 
                                                            If provided, the image will be resampled to this resolution.
                                                            Default is None, which means the image will not be resampled.
-        orientation (Optional[List[int]]): A list of three integers that specifies the desired axes orientation 
+        orientation (Optional[str]): A string specifying the desired axes orientation 
                                            of the output image. Default is None, which means the original orientation 
                                            will be preserved.
         permute_axes (Optional[List[int]]): A list of three integers that specifies the desired order of axes in the 
                                             output image.
+        photometric_interpretation (Optional[str]): The desired photometric interpretation for the output image. 
+                                                    Supported values: 'MONOCHROME1' or 'MONOCHROME2'.
+                                                    Default is None, which means the original photometric interpretation
+                                                    will be preserved.
+
     Returns:
         A SimpleITK image object containing the loaded DICOM images.
 
     Raises:
         RuntimeError: If no files were found, if the input path is not valid or if the series could not be read.
         ValueError: If the DICOM metadata is not consistent across all files, or if the input arguments are not valid.
-    """                            
+    """             
     if os.path.isdir(dicom_path):
         dicom_files = get_dicom_files(dicom_path)
     else:
@@ -146,11 +192,27 @@ def load_dicom_images(dicom_path: Union[str, List[str]], new_spacing: Optional[T
     # Check if the input DICOM file list exists
     if not dicom_files:
         raise RuntimeError("Empty DICOM file list.")
+    
+    # Read metadata from the first DICOM file
+    file_reader = sitk.ImageFileReader()
+    file_reader.SetFileName(dicom_files[0])
+    file_reader.ReadImageInformation()
+
+    metadata_keys = file_reader.GetMetaDataKeys()
+    metadata_dict = {key: file_reader.GetMetaData(key) for key in metadata_keys}
 
     # Load DICOM series
     reader = sitk.ImageSeriesReader()
     reader.SetFileNames(dicom_files)
     image = reader.Execute()
+
+    # Set metadata in the output image
+    for key, value in metadata_dict.items():
+        image.SetMetaData(key, value)
+    
+    # Convert photometric interpretation if specified
+    if photometric_interpretation is not None:
+        image = convert_photometric_interpretation(image, photometric_interpretation)
     
     if new_spacing is not None:
         print(f'resampling image to resolution {new_spacing} mm')
