@@ -135,10 +135,14 @@ def convert_photometric_interpretation(image: sitk.Image, target_interpretation:
         raise ValueError(f"Unsupported target photometric interpretation '{target_interpretation}'")
 
     if current_interpretation != target_interpretation:
+        print(f"converting from '{target_interpretation}' to '{current_interpretation}'")
         image_arr = sitk.GetArrayFromImage(image)
         inverted_arr = np.max(image_arr) - image_arr
         image = sitk.GetImageFromArray(inverted_arr)
         image.SetMetaData('0028|0004', target_interpretation)
+        
+    else:
+        print(f"no conversion. target = '{target_interpretation}', current = '{current_interpretation}'")
 
     return image
 
