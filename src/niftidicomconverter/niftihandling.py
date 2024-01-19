@@ -47,3 +47,56 @@ def read_nifti_file_nib(file_path: str) -> nib.nifti1.Nifti1Image:
         raise nib.filebasedimages.ImageFileError(f"Invalid NIfTI file '{file_path}': {str(e)}")
     
     return image
+
+def reorient_nifti(input_data: Union[str, nib.Nifti1Image], target_orientation: tuple) -> nib.Nifti1Image:
+    """
+    Reorient a NIFTI image to a specified target orientation.
+
+    The target orientation is specified as a tuple of axis codes, representing each axis's direction in 3D space.
+    These codes are:
+    - 'R' or 'L' for the Right or Left side of the patient.
+    - 'A' or 'P' for Anterior (front) or Posterior (back) of the patient.
+    - 'S' or 'I' for Superior (top) or Inferior (bottom) of the patient.
+
+    For example, ('R', 'A', 'S') means the first axis is Right-to-Left, the second is Anterior-to-Posterior, 
+    and the third is Superior-to-Inferior.
+
+    Parameters:
+    input_data (Union[str, nib.Nifti1Image]): Path to the input NIFTI file or a loaded NIFTI image.
+    target_orientation (tuple): Target orientation as a tuple of axis codes (e.g., ('R', 'A', 'S')).
+
+    Returns:
+    nib.Nifti1Image: A NIFTI image reoriented to the target orientation.
+
+    Example:
+    >>> reoriented_nifti = reorient_nifti("path/to/nifti/file.nii", ('R', 'A', 'S'))
+    or
+    >>> nifti_img = nib.load("path/to/nifti/file.nii")
+    >>> reoriented_nifti = reorient_nifti(nifti_img, ('R', 'A', 'S'))
+    """
+    # Load the NIFTI file if input_data is a file path
+    if isinstance(input_data, str):
+        nifti_img = nib.load(input_data)
+    else:
+        nifti_img = input_data
+
+    # Get current orientation
+    current_orientation = nib.aff2axcodes(nifti_img.affine)
+    
+    # Get target orientation array
+    target_ornt = nib.orientations.axcodes2ornt(target_orientation)
+    
+    # Get current orientation array
+    current_ornt = nib.orientations.axcodes2ornt(current_orientation)
+    
+    # Find transformation from current to target orientation
+    ornt_transformation = nib.orientations.ornt_transform(current_ornt, target_ornt)
+    
+    # Apply the transformation
+    reoriented_data = nib.orientations.apply_orientation(nifti_img.get_fdata(), ornt_transformation)
+    
+    # Create a new NIFTI image with the reoriented data
+    new_affine = nib.orientations.inv_ornt_aff(ornt_transformation, nifti_img.shape)
+    reoriented_nifti = nib.Nifti1Image(reoriented_data, new_affine)
+    
+    return reoriented_nifti
