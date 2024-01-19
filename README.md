@@ -10,5 +10,13 @@ Package to perform conversions between dicom and nifti file formats for medical 
 - test to see that you get the same results in terms of nifti files regardless of using sitk or pydicom
 - add tests of key functions
 
+**clean up notbuild folder. the build folder was interfering with the dist wheel files when installing the package from git. they should probably just be removed, but this should be investigated first**
+
 ## release new version
-`python3 -m build --wheel`
+- Make changes to the code
+- `increment the version number in the setup.py file`
+- `python3 -m build`
+
+## install package
+`pip install git+https://github.com/bjornah/niftidicomconverter.git`
+This will get you the latest built version of the package.
