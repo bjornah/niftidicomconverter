@@ -4,7 +4,7 @@ from typing import List, Union
 
 from rt_utils import RTStructBuilder
 
-from niftidicomconverter.dicomhandling import load_dicom_images, save_itk_image_as_nifti_sitk
+from niftidicomconverter.dicomhandling import load_dicom_images, save_itk_image_as_nifti_sitk, get_affine_from_itk_image
 from niftidicomconverter.dicomhandling_pydicom import load_dicom_images_pydicom, save_pydicom_to_nifti_nib
 from niftidicomconverter.utils import fetch_all_rois
 
@@ -34,12 +34,16 @@ def convert_dicom_to_nifti(dicom_path: Union[str, List[str]], file_path: str, lo
         pydicom_data = load_dicom_images_pydicom(dicom_path, **kwargs)
         save_pydicom_to_nifti_nib(pydicom_data, file_path)
 
+
+# this does not work. Does not translate all the relevant structures!
 def convert_dicom_rtss_to_nifti(
     dicom_folder: str,
     dicom_rtss_path: str,
     output_nifti_path: str,
 ) -> None:
     """
+    # this does not work. Does not translate all the relevant structures!
+
     Convert a DICOM RT Structure Set (RTSS) file to a NIfTI binary mask file.
     
     This function reads a DICOM RTSS file and converts the contours of structures in the image into a binary mask. The 
@@ -65,6 +69,12 @@ def convert_dicom_rtss_to_nifti(
     # To match with the dicom2nifti.dicom_series_to_nifti orientation
     rtss_mask = np.swapaxes(rtss_mask, 0, 1)
 
-    rtss_nii = nib.Nifti1Image(rtss_mask, affine=np.eye(4))
+
+    dicom_image = load_dicom_images(dicom_folder)
+    affine = get_affine_from_itk_image(dicom_image)
+
+    # rtss_nii = nib.Nifti1Image(rtss_mask, affine=np.eye(4))
+    rtss_nii = nib.Nifti1Image(rtss_mask, affine=affine)
+
     nib.save(rtss_nii, output_nifti_path)
     

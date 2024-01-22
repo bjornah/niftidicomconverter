@@ -138,6 +138,7 @@ def fetch_all_rois(rtstruct: RTStruct) -> np.ndarray:
     for roi_name in roi_names:
         mask = rtstruct.get_roi_mask_by_name(roi_name)
         masks.append(mask)
+        # print(roi_name)
 
     if len(masks) == 0:
         return None
