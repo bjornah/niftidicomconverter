@@ -264,7 +264,7 @@ def save_pydicom_to_nifti_nib(dicom_data: pydicom.dataset.FileDataset, nifti_fil
             try:
                 affine = calculate_affine_from_pydicom(dicom_data)
             except:
-                print('cannot calculate affine from dicom, set it to dentity matrix')
+                print('cannot calculate affine from dicom, set it to identity matrix')
                 affine = np.ones((4,4))
         nifti_data = nib.nifti1.Nifti1Image(dicom_data.pixel_array, affine)
         nib.save(nifti_data, nifti_file_path)

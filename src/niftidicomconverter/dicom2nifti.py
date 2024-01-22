@@ -34,16 +34,20 @@ def convert_dicom_to_nifti(dicom_path: Union[str, List[str]], file_path: str, lo
         pydicom_data = load_dicom_images_pydicom(dicom_path, **kwargs)
         save_pydicom_to_nifti_nib(pydicom_data, file_path)
 
+def copy_nifti_header(src: nib.Nifti1Image, dst: nib.Nifti1Image) -> nib.Nifti1Image:
+    """Copy header from src to dst while perserving the dst data."""
+    data = dst.get_fdata()
+    return nib.nifti1.Nifti1Image(data, None, header=src.header)
 
-# this does not work. Does not translate all the relevant structures!
+import tempfile
+import os
+
 def convert_dicom_rtss_to_nifti(
     dicom_folder: str,
     dicom_rtss_path: str,
     output_nifti_path: str,
 ) -> None:
     """
-    # this does not work. Does not translate all the relevant structures!
-
     Convert a DICOM RT Structure Set (RTSS) file to a NIfTI binary mask file.
     
     This function reads a DICOM RTSS file and converts the contours of structures in the image into a binary mask. The 
@@ -70,11 +74,16 @@ def convert_dicom_rtss_to_nifti(
     rtss_mask = np.swapaxes(rtss_mask, 0, 1)
 
 
-    dicom_image = load_dicom_images(dicom_folder)
-    affine = get_affine_from_itk_image(dicom_image)
-
+    dicom_image_sitk = load_dicom_images(dicom_folder)
+    affine = get_affine_from_itk_image(dicom_image_sitk)
     # rtss_nii = nib.Nifti1Image(rtss_mask, affine=np.eye(4))
     rtss_nii = nib.Nifti1Image(rtss_mask, affine=affine)
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmpfile = os.path.join(tmp_dir, 'image.nii')
+        # dicom_image_sitk = load_dicom_images(dicom_folder)
+        save_itk_image_as_nifti_sitk(dicom_image_sitk, tmpfile)
+        copy_nifti_header(tmpfile, rtss_nii)
 
     nib.save(rtss_nii, output_nifti_path)
     
