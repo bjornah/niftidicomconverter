@@ -82,8 +82,11 @@ def convert_dicom_rtss_to_nifti(
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmpfile = os.path.join(tmp_dir, 'image.nii')
         # dicom_image_sitk = load_dicom_images(dicom_folder)
+        
         save_itk_image_as_nifti_sitk(dicom_image_sitk, tmpfile)
-        copy_nifti_header(tmpfile, rtss_nii)
+        nifti_image = nib.load(tmpfile)
+
+        copy_nifti_header(nifti_image, rtss_nii)
 
     nib.save(rtss_nii, output_nifti_path)
     
