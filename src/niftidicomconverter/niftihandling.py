@@ -1,6 +1,7 @@
 import SimpleITK as sitk
 import nibabel as nib
 from typing import Union
+import numpy as np
 
 def read_nifti_file_sitk(file_path: str) -> sitk.Image:
     """
@@ -48,7 +49,7 @@ def read_nifti_file_nib(file_path: str) -> nib.nifti1.Nifti1Image:
     
     return image
 
-def reorient_nifti(input_data: Union[str, nib.Nifti1Image], target_orientation: tuple) -> nib.Nifti1Image:
+def reorient_nifti(input_data: Union[str, nib.Nifti1Image], target_orientation: tuple, print_debug: bool=False) -> nib.Nifti1Image:
     """
     Reorient a NIFTI image to a specified target orientation.
 
@@ -80,23 +81,39 @@ def reorient_nifti(input_data: Union[str, nib.Nifti1Image], target_orientation: 
     else:
         nifti_img = input_data
 
-    # Get current orientation
-    current_orientation = nib.aff2axcodes(nifti_img.affine)
+    old_affine = nifti_img.affine
     
-    # Get target orientation array
+    old_shape = nifti_img.shape
+
+    # Get current orientation and target orientation array
+    old_ornt = nib.orientations.io_orientation(nifti_img.affine)
+    old_axcode = nib.orientations.ornt2axcodes(old_ornt)
+
     target_ornt = nib.orientations.axcodes2ornt(target_orientation)
-    
-    # Get current orientation array
-    current_ornt = nib.orientations.axcodes2ornt(current_orientation)
-    
+
     # Find transformation from current to target orientation
-    ornt_transformation = nib.orientations.ornt_transform(current_ornt, target_ornt)
-    
+    ornt_transformation = nib.orientations.ornt_transform(old_ornt, target_ornt)
+
     # Apply the transformation
     reoriented_data = nib.orientations.apply_orientation(nifti_img.get_fdata(), ornt_transformation)
-    
-    # Create a new NIFTI image with the reoriented data
-    new_affine = nib.orientations.inv_ornt_aff(ornt_transformation, nifti_img.shape)
+
+    # Calculate the inverse orientation affine
+    inv_affine = nib.orientations.inv_ornt_aff(ornt_transformation, old_shape)
+
+    # Combine with the original affine
+    new_affine = np.dot(old_affine, inv_affine)
+
     reoriented_nifti = nib.Nifti1Image(reoriented_data, new_affine)
-    
+    # new_ornt = nib.orientations.io_orientation(reoriented_nifti.affine)
+    # print(f'new ornt = {new_ornt}')
+    if print_debug:
+        print(f'old affine = {old_affine}')
+        print(f'old shape = {old_shape}')
+        print(f'old ornt = {old_ornt}')
+        print(f'old axcode = {old_axcode}')
+        print(f'target ornt = {target_ornt}')
+        print(f'ornt transformation = {ornt_transformation}')
+        print(f'new affine = {new_affine}')
+        print(f'new axcode = {nib.aff2axcodes(reoriented_nifti.affine)}')
+
     return reoriented_nifti
