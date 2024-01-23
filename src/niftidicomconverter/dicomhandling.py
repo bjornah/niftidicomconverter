@@ -9,7 +9,21 @@ import tempfile
 
 from typing import Tuple, Optional, List, Union
 
-def check_itk_image(image: sitk.Image) -> bool:
+# from niftidicomconverter.utils import are_numbers_within_factor
+
+def are_numbers_approx_equal(numbers, rel_tol):
+    """
+    Check if all numbers in the tuple are approximately equal within a relative tolerance.
+
+    :param numbers: A tuple of numbers.
+    :param rel_tol: The relative tolerance within which the numbers should be considered equal.
+    :return: True if all numbers are approximately equal within the relative tolerance, False otherwise.
+    """
+    arr = np.array(numbers)
+    min_val = np.min(arr)
+    return np.all(np.isclose(arr, min_val, rtol=rel_tol))
+
+def check_itk_image(image: sitk.Image, spacing_tolerance=1e-5) -> bool:
     """
     Check a SimpleITK image for missing slices or non-uniform sampling.
 
@@ -33,10 +47,20 @@ def check_itk_image(image: sitk.Image) -> bool:
 
     # Check for non-uniform sampling
     spacing = image.GetSpacing()
-    for i in range(1, num_slices):
-        if spacing[-1] != image.TransformIndexToPhysicalPoint([0, 0, i])[-1] - image.TransformIndexToPhysicalPoint([0, 0, i-1])[-1]:
-            print(f"Error: non-uniform sampling between slices {i-1} and {i}.")
+    if len(set(spacing)) != 1:
+        print(f"non-iniform spacing detected. Spacings = {spacing}")
+        if are_numbers_approx_equal(spacing, spacing_tolerance):
+            print(f"Spacings within tolerance of {spacing_tolerance}, continue with conversion to nifti")
+        else:
+            # raise ValueError(f"Non-uniform spacing detected at greater than factor {1+spacing_tolerance}. Affine calculation not possible.")
+            print(f"Non-uniform spacing at more than relative difference of {spacing_tolerance}.")
             return False
+        
+    # spacing = image.GetSpacing()
+    # for i in range(1, num_slices):
+    #     if spacing[-1] != image.TransformIndexToPhysicalPoint([0, 0, i])[-1] - image.TransformIndexToPhysicalPoint([0, 0, i-1])[-1]:
+    #         print(f"Error: non-uniform sampling between slices {i-1} and {i}.")
+    #         return False
 
     return True
 
@@ -257,7 +281,7 @@ def get_dicom_files(dicom_folder: str) -> List[str]:
         
     return dicom_files
 
-def get_affine_from_itk_image(image: sitk.Image) -> np.ndarray:
+def get_affine_from_itk_image(image: sitk.Image, spacing_tolerance=1e-5) -> np.ndarray:
     """
     Calculate the affine transformation matrix for a SimpleITK image based on the metadata of the DICOM files.
 
@@ -276,7 +300,12 @@ def get_affine_from_itk_image(image: sitk.Image) -> np.ndarray:
     
     spacing = image.GetSpacing()
     if len(set(spacing)) != 1:
-        raise ValueError("Non-uniform spacing detected. Affine calculation is not possible.")
+        print(f"non-iniform spacing detected. Spacings = {spacing}")
+        if are_numbers_approx_equal(spacing, spacing_tolerance):
+            print(f"Spacings within tolerance of {spacing_tolerance}, continue with conversion to nifti")
+        else:
+            raise ValueError(f"Non-uniform spacing at more than relative difference of {spacing_tolerance}. Affine calculation not possible.")
+
 
     matrix = np.array(image.GetDirection()).reshape((dimension, dimension))
     origin = np.array(image.GetOrigin())

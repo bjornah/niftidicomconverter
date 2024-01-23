@@ -29,7 +29,10 @@ def convert_dicom_to_nifti(dicom_path: Union[str, List[str]], file_path: str, lo
     """
     if loader=='sitk':
         image_itk = load_dicom_images(dicom_path, **kwargs)
+        print(f'affine in dicom image = {get_affine_from_itk_image(image_itk)}')
         save_itk_image_as_nifti_sitk(image_itk, file_path)
+        nii_image = nib.load(file_path)
+        print(f'nii_image.affine = {nii_image.affine}')
     elif loader=='pydicom':
         pydicom_data = load_dicom_images_pydicom(dicom_path, **kwargs)
         save_pydicom_to_nifti_nib(pydicom_data, file_path)
@@ -73,20 +76,26 @@ def convert_dicom_rtss_to_nifti(
     # To match with the dicom2nifti.dicom_series_to_nifti orientation
     rtss_mask = np.swapaxes(rtss_mask, 0, 1)
 
+    rtss_nii = nib.Nifti1Image(rtss_mask, affine=np.eye(4)) # note that the affine will be calculated from the header later, so don't need to calculate the affine here
 
-    dicom_image_sitk = load_dicom_images(dicom_folder)
-    affine = get_affine_from_itk_image(dicom_image_sitk)
-    # rtss_nii = nib.Nifti1Image(rtss_mask, affine=np.eye(4))
-    rtss_nii = nib.Nifti1Image(rtss_mask, affine=affine)
+    # nib.save(rtss_nii, output_nifti_path)
 
+    # this is to get the header of the original dicom
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmpfile = os.path.join(tmp_dir, 'image.nii')
-        # dicom_image_sitk = load_dicom_images(dicom_folder)
-        
+
+        dicom_image_sitk = load_dicom_images(dicom_folder)
         save_itk_image_as_nifti_sitk(dicom_image_sitk, tmpfile)
-        nifti_image = nib.load(tmpfile)
 
-        copy_nifti_header(nifti_image, rtss_nii)
+        nifti_image_src = nib.load(tmpfile)
 
-    nib.save(rtss_nii, output_nifti_path)
+        # nifti_image_dst = nib.load(output_nifti_path)
+
+        nib_rtss = copy_nifti_header(nifti_image_src, rtss_nii)
+        
+    nib.save(nib_rtss, output_nifti_path)
+
+    # nifti_rtss_image = nib.load(output_nifti_path)
+    # print(f'nifti_rtss_image.affine = {nifti_rtss_image.affine}')
     
+

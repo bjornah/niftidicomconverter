@@ -7,6 +7,7 @@ from rt_utils import RTStruct
 from typing import Optional, Union, List
 from shutil import copyfile
 import time
+from niftidicomconverter.dicomhandling import itk_resample_volume
 
 def axes_swapping(array: np.array):
     """
@@ -138,7 +139,7 @@ def fetch_all_rois(rtstruct: RTStruct) -> np.ndarray:
     for roi_name in roi_names:
         mask = rtstruct.get_roi_mask_by_name(roi_name)
         masks.append(mask)
-        # print(roi_name)
+        print(roi_name)
 
     if len(masks) == 0:
         return None
