@@ -1,12 +1,16 @@
 import logging
-import SimpleITK as sitk
-from typing import Tuple
-import numpy as np
 import os
+import time
+
+import SimpleITK as sitk
+import nibabel as nib
+import numpy as np
+
+from typing import Tuple
 from rt_utils import RTStruct
 from typing import Optional, Union, List
 from shutil import copyfile
-import time
+
 from niftidicomconverter.dicomhandling import itk_resample_volume
 
 def axes_swapping(array: np.array):
@@ -121,34 +125,6 @@ def copy_file_safely(tmp_dir: str, src: str, dst_naming: str) -> str:
 
     return dst
 
-def fetch_all_rois(rtstruct: RTStruct) -> np.ndarray:
-    """
-    Fetch all ROI masks from an RTStruct object and combine them into a 3D numpy array.
-
-    Args:
-        rtstruct (RTStruct): The RTStruct object containing the ROIs to be fetched.
-
-    Returns:
-        np.ndarray: A 3D numpy array containing the binary masks for all ROIs in the RTStruct object.
-            The array has shape (Z, Y, X, N), where Z, Y, and X are the dimensions of the image and N
-            is the number of ROIs, including the background.
-    """
-    masks = []
-    roi_names = rtstruct.get_roi_names()
-
-    for roi_name in roi_names:
-        mask = rtstruct.get_roi_mask_by_name(roi_name)
-        masks.append(mask)
-        print(roi_name)
-
-    if len(masks) == 0:
-        return None
-
-    background = np.sum(masks, axis=0) == 0
-
-    masks.insert(0, background)  # Add background to the mask
-
-    return np.stack(masks, axis=-1)
 
 def get_array_from_itk_image(image: sitk.Image) -> np.ndarray:
     """
@@ -161,6 +137,11 @@ def get_array_from_itk_image(image: sitk.Image) -> np.ndarray:
         A NumPy array with the same dimensions and pixel values as the input image.
     """
     return sitk.GetArrayFromImage(image)
+
+def copy_nifti_header(src: nib.Nifti1Image, dst: nib.Nifti1Image) -> nib.Nifti1Image:
+    """Copy header from src to dst while perserving the dst data."""
+    data = dst.get_fdata()
+    return nib.nifti1.Nifti1Image(data, None, header=src.header)
 
 
 # def itk_resample_volume(

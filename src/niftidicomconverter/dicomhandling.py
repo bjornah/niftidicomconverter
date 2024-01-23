@@ -165,8 +165,8 @@ def convert_photometric_interpretation(image: sitk.Image, target_interpretation:
         image = sitk.GetImageFromArray(inverted_arr)
         image.SetMetaData('0028|0004', target_interpretation)
         
-    else:
-        print(f"no conversion. target = '{target_interpretation}', current = '{current_interpretation}'")
+    # else:
+    #     print(f"no conversion. target = '{target_interpretation}', current = '{current_interpretation}'")
 
     return image
 
@@ -300,11 +300,11 @@ def get_affine_from_itk_image(image: sitk.Image, spacing_tolerance=1e-5) -> np.n
     
     spacing = image.GetSpacing()
     if len(set(spacing)) != 1:
-        print(f"non-iniform spacing detected. Spacings = {spacing}")
-        if are_numbers_approx_equal(spacing, spacing_tolerance):
-            print(f"Spacings within tolerance of {spacing_tolerance}, continue with conversion to nifti")
-        else:
-            raise ValueError(f"Non-uniform spacing at more than relative difference of {spacing_tolerance}. Affine calculation not possible.")
+        # print(f"non-iniform spacing detected. Spacings = {spacing}")
+        if not are_numbers_approx_equal(spacing, spacing_tolerance):
+            # print(f"Spacings within tolerance of {spacing_tolerance}, continue with conversion to nifti")
+        # else:
+            raise ValueError(f"Non-uniform spacing ({spacing}) with more than relative difference of {spacing_tolerance} detected. Affine calculation not possible.")
 
 
     matrix = np.array(image.GetDirection()).reshape((dimension, dimension))
@@ -324,6 +324,8 @@ def get_affine_from_itk_image(image: sitk.Image, spacing_tolerance=1e-5) -> np.n
 
 def save_itk_image_as_nifti_nib(image: sitk.Image, file_path: str) -> None:
     """
+    TO BE DEPRECATED, NOT USED ANYWHERE
+
     Saves a SimpleITK image as a Nifti file using nibabel.
 
     Args:
