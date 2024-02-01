@@ -28,7 +28,7 @@ def axes_swapping(array: np.array):
     # array = array[:,::-1,:]
     return array
 
-def find_clusters_itk(mask: sitk.Image, max_object: int = 50) -> Tuple[sitk.Image, int]:
+def find_clusters_itk(mask: sitk.Image, max_object: int = 100) -> Tuple[sitk.Image, int]:
     """
     Find the number of separate clusters in the mask (ITK Image).
     Args:

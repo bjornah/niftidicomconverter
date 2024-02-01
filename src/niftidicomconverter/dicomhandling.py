@@ -165,9 +165,6 @@ def convert_photometric_interpretation(image: sitk.Image, target_interpretation:
         image = sitk.GetImageFromArray(inverted_arr)
         image.SetMetaData('0028|0004', target_interpretation)
         
-    # else:
-    #     print(f"no conversion. target = '{target_interpretation}', current = '{current_interpretation}'")
-
     return image
 
 

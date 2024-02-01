@@ -54,6 +54,8 @@ def nifti_rtss_to_dicom_rtss(
 
     if clustering_threshold:
         label_image, n_target = find_clusters_itk(rtss_binary, max_object=clustering_threshold)
+    else:
+        label_image, n_target = find_clusters_itk(rtss_binary)
         # logging.info(f'number of disjoint clusters/tumours in prediction: {n_target}')
         
     nda = sitk.GetArrayFromImage(label_image)
