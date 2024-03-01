@@ -1,10 +1,6 @@
 Niftidicomconverter API documentation
 =====================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents
-
 .. automodule:: niftidicomconverter.dicom2nifti
    :members:
    :undoc-members:
