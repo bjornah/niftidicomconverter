@@ -11,17 +11,32 @@ from typing import Tuple, Optional, List, Union
 
 # from niftidicomconverter.utils import are_numbers_within_factor
 
-def are_numbers_approx_equal(numbers, rel_tol):
+def are_numbers_approx_equal(numbers: list, rel_tol: float) -> bool:
     """
-    Check if all numbers in the tuple are approximately equal within a relative tolerance.
+    Determines if all numbers in a list are approximately equal to each other within a specified relative tolerance.
 
-    :param numbers: A tuple of numbers.
-    :param rel_tol: The relative tolerance within which the numbers should be considered equal.
-    :return: True if all numbers are approximately equal within the relative tolerance, False otherwise.
+    Parameters:
+    - numbers (list): A list of numbers (integers or floats) to be compared.
+    - rel_tol (float): The relative tolerance as a non-negative number. For two numbers `a` and `b`, they are considered
+      approximately equal if `|a - b| <= rel_tol * max(|a|, |b|)`.
+
+    Returns:
+    - bool: True if all numbers in the list are approximately equal within the given relative tolerance; False otherwise.
+
+    Example:
+    ```python
+    numbers = [1.00, 1.02, 0.98]
+    rel_tol = 0.05
+    print(are_numbers_approx_equal(numbers, rel_tol))
+    # Output: True
+    ```
     """
     arr = np.array(numbers)
     min_val = np.min(arr)
     return np.all(np.isclose(arr, min_val, rtol=rel_tol))
+
+
+
 
 def check_itk_image(image: sitk.Image, spacing_tolerance=1e-5) -> bool:
     """

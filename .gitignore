@@ -18,3 +18,10 @@ secrets.json
 data/
 
 *old*
+
+# Sphinx documentation
+_build/
+_static/
+_templates/
+_sources/
+*.doctree

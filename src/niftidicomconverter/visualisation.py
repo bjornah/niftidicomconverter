@@ -132,6 +132,28 @@ def plot_dicom_matrix(nrows: int, ncols: int, dicom_files: List[str], figsize: T
             
 def visualize_nifti_file(nii_path: Union[str, List[str]], slice_index: int = 0, loader: str = 'sitk', 
                          ax=None, **kwargs) -> None:
+    """
+    Visualizes a single slice or 2D NIfTI file using SimpleITK or NiBabel for loading the image data.
+
+    Parameters:
+    - nii_path (Union[str, List[str]]): Path to the NIfTI file(s) to be visualized. Can be a single string path or a list
+      of paths for batch processing with SimpleITK only.
+    - slice_index (int, optional): The index of the slice to be visualized if the image is 3D. Defaults to 0.
+    - loader (str, optional): Specifies the library used for loading the NIfTI file. Valid values are 'sitk' for SimpleITK
+      and 'nib' for NiBabel. Defaults to 'sitk'.
+    - ax (matplotlib.axes.Axes, optional): The matplotlib axis on which to display the image. If None, a new figure and
+      axis are created.
+    - **kwargs: Additional keyword arguments passed to the NIfTI file loading function.
+
+    Returns:
+    - None: The function does not return a value but visualizes the NIfTI file directly.
+
+    Example:
+    ```python
+    visualize_nifti_file('path/to/image.nii', slice_index=10, loader='nib')
+    ```
+    """
+
 
     if loader=='sitk':
         image_itk = read_nifti_file_sitk(nii_path, **kwargs)
@@ -149,7 +171,36 @@ def visualize_nifti_file(nii_path: Union[str, List[str]], slice_index: int = 0, 
     else:
         ax.imshow(array[:,:,slice_index], cmap='gray')
         
-def plot_nifti_matrix(nrows, ncols, nii_files, figsize=(10,10), indices=None, loader: str = 'sitk', **kwargs) -> None:
+def plot_nifti_matrix(nrows: int, ncols: int, nii_files: List[str], figsize=(10, 10), indices: Optional[List[int]] = None, loader: str = 'sitk', **kwargs) -> None:
+    """
+    Plots a matrix of NIfTI images, visualizing a single slice or 2D images from each file in a subplot grid.
+
+    This function creates a grid of subplots with the specified number of rows and columns, then populates each subplot
+    with an image from the list of NIfTI files provided. It uses `visualize_nifti_file` to handle the visualization of
+    each file, supporting both SimpleITK and NiBabel for image loading. The slice index for 3D images can be specified
+    through `indices`, allowing different slices to be visualized for each image.
+
+    Parameters:
+    - nrows (int): Number of rows in the subplot grid.
+    - ncols (int): Number of columns in the subplot grid.
+    - nii_files (List[str]): List of paths to NIfTI files to be visualized.
+    - figsize ((int, int), optional): Figure size in inches. Defaults to (10, 10).
+    - indices (Optional[List[int]], optional): List of slice indices to visualize for each NIfTI file. If provided, must
+      match the length of `nii_files`. If None, the first slice (index 0) is visualized for each file. Defaults to None.
+    - loader (str, optional): Specifies the library used for loading the NIfTI files. Valid values are 'sitk' for
+      SimpleITK and 'nib' for NiBabel. Defaults to 'sitk'.
+    - **kwargs: Additional keyword arguments passed to the NIfTI file loading and visualization functions.
+
+    Returns:
+    - None: The function does not return a value but plots the NIfTI images directly.
+
+    Example:
+    ```python
+    nii_files = ['path/to/image1.nii', 'path/to/image2.nii']
+    plot_nifti_matrix(1, 2, nii_files, loader='nib')
+    ```
+    """
+
     fig, axes = plt.subplots(nrows, ncols, figsize=figsize)
     for i, ax in enumerate(axes.ravel()):
         if i<len(nii_files):
