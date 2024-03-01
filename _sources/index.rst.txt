@@ -12,13 +12,11 @@ Welcome to nifti dicom converter's documentation!
    
    niftidicomconverter
 
+Indices and tables
+==================
 
-
-.. Indices and tables
-.. ==================
-
-.. * :ref:`genindex`
-.. * :ref:`modindex`
-.. * :ref:`search`
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
 
 
