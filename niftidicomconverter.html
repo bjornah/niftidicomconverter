@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Niftidicomconverter API documentation &mdash; nifti dicom converter 1.5.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=73275c37"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to nifti dicom converter’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            nifti dicom converter
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Niftidicomconverter API documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicom2nifti.convert_dicom_rtss_to_nifti"><code class="docutils literal notranslate"><span class="pre">convert_dicom_rtss_to_nifti()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicom2nifti.convert_dicom_to_nifti"><code class="docutils literal notranslate"><span class="pre">convert_dicom_to_nifti()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicom2nifti.fetch_all_rois"><code class="docutils literal notranslate"><span class="pre">fetch_all_rois()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicom2nifti.fetch_mapped_rois"><code class="docutils literal notranslate"><span class="pre">fetch_mapped_rois()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicom2nifti.fetch_rtstruct_roi_masks"><code class="docutils literal notranslate"><span class="pre">fetch_rtstruct_roi_masks()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling_pydicom.calculate_affine_from_pydicom"><code class="docutils literal notranslate"><span class="pre">calculate_affine_from_pydicom()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling_pydicom.check_dicom_array_consistency_pydicom"><code class="docutils literal notranslate"><span class="pre">check_dicom_array_consistency_pydicom()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling_pydicom.convert_photometric_interpretation_pydicom"><code class="docutils literal notranslate"><span class="pre">convert_photometric_interpretation_pydicom()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling_pydicom.load_dicom_images_pydicom"><code class="docutils literal notranslate"><span class="pre">load_dicom_images_pydicom()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling_pydicom.orient_volume_pydicom"><code class="docutils literal notranslate"><span class="pre">orient_volume_pydicom()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling_pydicom.pydicom_to_simpleitk"><code class="docutils literal notranslate"><span class="pre">pydicom_to_simpleitk()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling_pydicom.resample_volume_pydicom"><code class="docutils literal notranslate"><span class="pre">resample_volume_pydicom()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling_pydicom.save_pydicom_to_nifti_nib"><code class="docutils literal notranslate"><span class="pre">save_pydicom_to_nifti_nib()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling.are_numbers_approx_equal"><code class="docutils literal notranslate"><span class="pre">are_numbers_approx_equal()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling.check_dicom_metadata_consistency"><code class="docutils literal notranslate"><span class="pre">check_dicom_metadata_consistency()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling.check_itk_image"><code class="docutils literal notranslate"><span class="pre">check_itk_image()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling.convert_photometric_interpretation"><code class="docutils literal notranslate"><span class="pre">convert_photometric_interpretation()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling.get_affine_from_itk_image"><code class="docutils literal notranslate"><span class="pre">get_affine_from_itk_image()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling.get_dicom_files"><code class="docutils literal notranslate"><span class="pre">get_dicom_files()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling.itk_resample_volume"><code class="docutils literal notranslate"><span class="pre">itk_resample_volume()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling.load_dicom_images"><code class="docutils literal notranslate"><span class="pre">load_dicom_images()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling.permute_itk_axes"><code class="docutils literal notranslate"><span class="pre">permute_itk_axes()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling.save_itk_image_as_nifti_nib"><code class="docutils literal notranslate"><span class="pre">save_itk_image_as_nifti_nib()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.dicomhandling.save_itk_image_as_nifti_sitk"><code class="docutils literal notranslate"><span class="pre">save_itk_image_as_nifti_sitk()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.nifti2dicom.nifti_rtss_to_dicom_rtss"><code class="docutils literal notranslate"><span class="pre">nifti_rtss_to_dicom_rtss()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.niftihandling.read_nifti_file_nib"><code class="docutils literal notranslate"><span class="pre">read_nifti_file_nib()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.niftihandling.read_nifti_file_sitk"><code class="docutils literal notranslate"><span class="pre">read_nifti_file_sitk()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.niftihandling.reorient_nifti"><code class="docutils literal notranslate"><span class="pre">reorient_nifti()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.utils.axes_swapping"><code class="docutils literal notranslate"><span class="pre">axes_swapping()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.utils.copy_file_safely"><code class="docutils literal notranslate"><span class="pre">copy_file_safely()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.utils.copy_nifti_header"><code class="docutils literal notranslate"><span class="pre">copy_nifti_header()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.utils.find_clusters_itk"><code class="docutils literal notranslate"><span class="pre">find_clusters_itk()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.utils.get_array_from_itk_image"><code class="docutils literal notranslate"><span class="pre">get_array_from_itk_image()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.utils.get_binary_rtss"><code class="docutils literal notranslate"><span class="pre">get_binary_rtss()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.visualisation.plot_dicom_matrix"><code class="docutils literal notranslate"><span class="pre">plot_dicom_matrix()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.visualisation.plot_nifti_matrix"><code class="docutils literal notranslate"><span class="pre">plot_nifti_matrix()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.visualisation.squeeze_if_one"><code class="docutils literal notranslate"><span class="pre">squeeze_if_one()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.visualisation.visualize_dicom_file"><code class="docutils literal notranslate"><span class="pre">visualize_dicom_file()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.visualisation.visualize_itk_slice"><code class="docutils literal notranslate"><span class="pre">visualize_itk_slice()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.visualisation.visualize_nifti_file"><code class="docutils literal notranslate"><span class="pre">visualize_nifti_file()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#niftidicomconverter.visualisation.visualize_nifti_slice"><code class="docutils literal notranslate"><span class="pre">visualize_nifti_slice()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">nifti dicom converter</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Niftidicomconverter API documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/niftidicomconverter.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="niftidicomconverter-api-documentation">
+<h1>Niftidicomconverter API documentation<a class="headerlink" href="#niftidicomconverter-api-documentation" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<dl class="py function" id="module-niftidicomconverter.dicom2nifti">
+<dt class="sig sig-object py" id="niftidicomconverter.dicom2nifti.convert_dicom_rtss_to_nifti">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicom2nifti.</span></span><span class="sig-name descname"><span class="pre">convert_dicom_rtss_to_nifti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dicom_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dicom_rtss_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_nifti_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#niftidicomconverter.dicom2nifti.convert_dicom_rtss_to_nifti" title="Link to this definition"></a></dt>
+<dd><p>Converts a DICOM RT Structure Set (RTSS) file into a NIfTI format binary mask file,
+applying a structure map to filter and organize the ROI masks into the output file.</p>
+<p>This function processes a specified DICOM RTSS file along with its corresponding DICOM series,
+creating a binary mask for each ROI defined in the RTSS and mapping these to a specified
+structure map. The masks are then saved as a NIfTI file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dicom_folder</strong> (<em>str</em>) – Path to the folder containing the DICOM series associated with the RTSS.</p></li>
+<li><p><strong>dicom_rtss_path</strong> (<em>str</em>) – Path to the DICOM RT Structure Set file to be converted.</p></li>
+<li><p><strong>output_nifti_path</strong> (<em>str</em>) – Destination path where the resulting NIfTI file will be saved.</p></li>
+<li><p><strong>structure_map</strong> (<em>dict</em>) – A mapping from structure indices (integer keys) to lists of structure
+names (strings) that specifies how ROI masks should be organized in the NIfTI file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The function saves the generated NIfTI file to the specified output path but does not return any value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicom2nifti.convert_dicom_to_nifti">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicom2nifti.</span></span><span class="sig-name descname"><span class="pre">convert_dicom_to_nifti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dicom_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'sitk'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#niftidicomconverter.dicom2nifti.convert_dicom_to_nifti" title="Link to this definition"></a></dt>
+<dd><p>Converts a DICOM series to a NIfTI file.</p>
+<p>This function loads a DICOM series from a file or a directory, or a list of dicom files, using the
+<cite>load_dicom_images</cite> function and saves it as a NIfTI file using the <cite>save_itk_image_as_nifti_sitk</cite> function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dicom_path</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em>) – The path to the directory containing DICOM files, the path to a single
+DICOM file, or a list of dicom files.</p></li>
+<li><p><strong>file_path</strong> (<em>str</em>) – The path to save the output NIfTI file.</p></li>
+<li><p><strong>**kwargs</strong> – Optional keyword arguments to pass to the <cite>load_dicom_images</cite> function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RuntimeError</strong> – If the DICOM series could not be read or the NIfTI file could not be saved.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicom2nifti.fetch_all_rois">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicom2nifti.</span></span><span class="sig-name descname"><span class="pre">fetch_all_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rtstruct</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">RTStruct</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#niftidicomconverter.dicom2nifti.fetch_all_rois" title="Link to this definition"></a></dt>
+<dd><p>Fetches all ROI masks from an RTStruct object and combines them into a single flat mask.
+This function iterates over all ROI names in the RTStruct, retrieves each ROI’s mask,
+and aggregates these masks into a single flat mask where each voxel’s value indicates
+the presence (1) or absence (0) of any ROI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>rtstruct</strong> (<em>RTStruct</em>) – An object representing the RT structure set, which must have methods
+<cite>get_roi_names()</cite> and <cite>get_roi_mask_by_name(roi_name)</cite>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A 3D numpy array of uint8, representing the aggregated presence of all ROIs.</dt><dd><p>If no ROIs are present, returns None.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">rtstruct</span> <span class="pre">=</span> <span class="pre">load_rtstruct(&quot;path/to/dicom/folder&quot;)</span>
+<span class="pre">flat_mask</span> <span class="pre">=</span> <span class="pre">fetch_all_rois(rtstruct)</span>
+<span class="pre">`</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicom2nifti.fetch_mapped_rois">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicom2nifti.</span></span><span class="sig-name descname"><span class="pre">fetch_mapped_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rtstruct</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">RTStruct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#niftidicomconverter.dicom2nifti.fetch_mapped_rois" title="Link to this definition"></a></dt>
+<dd><p>Fetches and maps Regions of Interest (ROIs) from an RTStruct object to a specified structure map,
+returning a stacked numpy array of masks corresponding to each structure.</p>
+<p>This function iterates over ROI names in the RTStruct, checks if each ROI name matches any of the
+structures specified in <cite>structure_map</cite>, and if so, extracts the mask for that ROI. Masks for
+ROIs corresponding to the same structure index are combined using a logical OR operation. The
+function returns a 4D numpy array, where the first three dimensions correspond to the spatial
+dimensions of the masks, and the fourth dimension indexes the structures plus a background layer.
+The background layer is set to 1 for voxels not belonging to any ROI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rtstruct</strong> (<em>RTStruct</em>) – An object representing the RT structure set, which must have methods
+<cite>get_roi_names()</cite> and <cite>get_roi_mask_by_name(roi_name)</cite>.</p></li>
+<li><p><strong>structure_map</strong> (<em>dict</em>) – A mapping from structure index (as integer keys) to lists of structure names
+(as strings). The function maps each ROI to these indices based on matching names.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A 4D numpy array of uint8, where each slice along the fourth dimension represents a mask</dt><dd><p>for a different structure, including an additional background layer as the first index.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – Logs an error and breaks the current iteration if <cite>get_roi_mask_by_name</cite> raises an Exception.</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">rtstruct</span> <span class="pre">=</span> <span class="pre">load_rtstruct(&quot;path/to/dicom/folder&quot;)</span>
+<span class="pre">structure_map</span> <span class="pre">=</span> <span class="pre">{0:</span> <span class="pre">[&quot;Structure1&quot;,</span> <span class="pre">&quot;Structure2&quot;],</span> <span class="pre">1:</span> <span class="pre">[&quot;Structure3&quot;]}</span>
+<span class="pre">masks</span> <span class="pre">=</span> <span class="pre">fetch_mapped_rois(rtstruct,</span> <span class="pre">structure_map)</span>
+<span class="pre">`</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicom2nifti.fetch_rtstruct_roi_masks">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicom2nifti.</span></span><span class="sig-name descname"><span class="pre">fetch_rtstruct_roi_masks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rtstruct</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">RTStruct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#niftidicomconverter.dicom2nifti.fetch_rtstruct_roi_masks" title="Link to this definition"></a></dt>
+<dd><p>Fetches ROI masks from an RTStruct object, optionally mapping them according to a given structure map.
+If a structure map is provided, it uses <cite>fetch_mapped_rois</cite> to fetch and map ROIs to the specified
+structure map. If no structure map is provided, it fetches all ROIs using <cite>fetch_all_rois</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rtstruct</strong> (<em>RTStruct</em>) – An object representing the RT structure set, which must have methods
+<cite>get_roi_names()</cite> and <cite>get_roi_mask_by_name(roi_name)</cite>.</p></li>
+<li><p><strong>structure_map</strong> (<em>dict</em><em>, </em><em>optional</em>) – A mapping from structure index (as integer keys) to lists of
+structure names (as strings). If provided, ROIs are mapped to these indices based on matching names.
+If None, all ROI masks are fetched without mapping.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A numpy array of masks. The array is 4D if <cite>structure_map</cite> is provided and mapping</dt><dd><p>is performed, otherwise, a 3D array representing a flat mask of all ROIs.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">rtstruct</span> <span class="pre">=</span> <span class="pre">load_rtstruct(&quot;path/to/dicom/folder&quot;)</span>
+<span class="pre">structure_map</span> <span class="pre">=</span> <span class="pre">{0:</span> <span class="pre">[&quot;Structure1&quot;,</span> <span class="pre">&quot;Structure2&quot;],</span> <span class="pre">1:</span> <span class="pre">[&quot;Structure3&quot;]}</span>
+<span class="pre">masks</span> <span class="pre">=</span> <span class="pre">fetch_rtstruct_roi_masks(rtstruct,</span> <span class="pre">structure_map)</span>
+<span class="pre">`</span></code></p>
+</dd></dl>
+
+<dl class="py function" id="module-niftidicomconverter.dicomhandling_pydicom">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling_pydicom.calculate_affine_from_pydicom">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling_pydicom.</span></span><span class="sig-name descname"><span class="pre">calculate_affine_from_pydicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dicom_image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileDataset</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling_pydicom.calculate_affine_from_pydicom" title="Link to this definition"></a></dt>
+<dd><p>Calculate the affine matrix for a PyDICOM image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dicom_image</strong> (<em>pydicom.dataset.FileDataset</em>) – The PyDICOM image for which to calculate the affine matrix.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The affine matrix for the PyDICOM image.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling_pydicom.check_dicom_array_consistency_pydicom">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling_pydicom.</span></span><span class="sig-name descname"><span class="pre">check_dicom_array_consistency_pydicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">FileDataset</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling_pydicom.check_dicom_array_consistency_pydicom" title="Link to this definition"></a></dt>
+<dd><p>Checks the consistency of a list of DICOM slices.</p>
+<p>Parameters:
+slices (List[pydicom.dataset.FileDataset]): A list of DICOM slices.</p>
+<p>Returns:
+bool: True if the slices are consistent, False otherwise.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling_pydicom.convert_photometric_interpretation_pydicom">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling_pydicom.</span></span><span class="sig-name descname"><span class="pre">convert_photometric_interpretation_pydicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileDataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_interpretation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FileDataset</span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling_pydicom.convert_photometric_interpretation_pydicom" title="Link to this definition"></a></dt>
+<dd><p>Convert the photometric interpretation of a Pydicom dataset to the specified target interpretation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dcm</strong> (<em>pydicom.dataset.FileDataset</em>) – The input Pydicom dataset.</p></li>
+<li><p><strong>target_interpretation</strong> (<em>str</em>) – The target photometric interpretation, either ‘MONOCHROME1’ or ‘MONOCHROME2’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Pydicom dataset.FileDataset with the updated photometric interpretation and pixel data.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the target photometric interpretation is not supported.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling_pydicom.load_dicom_images_pydicom">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling_pydicom.</span></span><span class="sig-name descname"><span class="pre">load_dicom_images_pydicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_spacing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permute_axes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">photometric_interpretation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FileDataset</span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling_pydicom.load_dicom_images_pydicom" title="Link to this definition"></a></dt>
+<dd><p>Loads DICOM image files into a single DICOM image dataset using the Pydicom library.</p>
+<p>Parameters:
+paths (Union[str, List[str]]): The path(s) to the DICOM file(s).
+new_spacing (Optional[Tuple[float, float, float]]): The new voxel spacing in mm for the resampled image.
+If None, the image is not resampled. Defaults to None.
+orientation (Optional[str]): The new orientation of the image. If None, the orientation is not changed.
+Defaults to None.
+permute_axes (Optional[List[int]]): The order in which to permute the axes of the image. If None,
+the axes are not permuted. Defaults to None.</p>
+<p>Returns:
+pydicom.dataset.FileDataset: A single DICOM image dataset.</p>
+<p>Raises:
+RuntimeError: If the DICOM files are not consistent, i.e., ‘PatientID’, ‘StudyInstanceUID’,
+‘SeriesInstanceUID’, or ‘Modality’ are not the same across all files, or if there is an error
+in one or more DICOM files.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling_pydicom.orient_volume_pydicom">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling_pydicom.</span></span><span class="sig-name descname"><span class="pre">orient_volume_pydicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling_pydicom.orient_volume_pydicom" title="Link to this definition"></a></dt>
+<dd><p>Orient a 3D image according to a desired axes orientation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>np.ndarray</em>) – A 3D numpy array representing the input image.</p></li>
+<li><p><strong>orientation</strong> (<em>str</em>) – A string representing the desired axes orientation of the output image.
+Valid values are “RAS”, “LPS”, “RAI”, “LPI”, “ARS”, “PRS”, “AIP”, “PIP”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A 3D numpy array representing the oriented image.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling_pydicom.pydicom_to_simpleitk">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling_pydicom.</span></span><span class="sig-name descname"><span class="pre">pydicom_to_simpleitk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileDataset</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Image</span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling_pydicom.pydicom_to_simpleitk" title="Link to this definition"></a></dt>
+<dd><p>Convert a Pydicom dataset to a SimpleITK image object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dcm</strong> (<em>pydicom.dataset.FileDataset</em>) – The input Pydicom dataset.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A SimpleITK image object with the same pixel data and metadata as the input Pydicom dataset.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling_pydicom.resample_volume_pydicom">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling_pydicom.</span></span><span class="sig-name descname"><span class="pre">resample_volume_pydicom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_spacing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling_pydicom.resample_volume_pydicom" title="Link to this definition"></a></dt>
+<dd><p>Resample a 3D image to a new voxel spacing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>np.ndarray</em>) – A 3D numpy array representing the input image.</p></li>
+<li><p><strong>spacing</strong> (<em>np.ndarray</em>) – A 3-element numpy array representing the current voxel spacing of the input image.</p></li>
+<li><p><strong>new_spacing</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>, </em><em>float</em><em>]</em>) – A 3-element tuple representing the desired voxel spacing of the output image.</p></li>
+<li><p><strong>order</strong> (<em>int</em>) – The order of interpolation used to resample the image. Default is 3.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing the resampled 3D image and its new voxel spacing.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling_pydicom.save_pydicom_to_nifti_nib">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling_pydicom.</span></span><span class="sig-name descname"><span class="pre">save_pydicom_to_nifti_nib</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dicom_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileDataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nifti_file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling_pydicom.save_pydicom_to_nifti_nib" title="Link to this definition"></a></dt>
+<dd><p>Convert a PyDICOM dataset to a NIfTI file using NiBabel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dicom_data</strong> (<em>pydicom.dataset.FileDataset</em>) – The PyDICOM dataset to convert.</p></li>
+<li><p><strong>nifti_file_path</strong> (<em>str</em>) – The desired path for the NIfTI file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple indicating whether the conversion was successful (True or False) and a message describing the result.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[bool, str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-niftidicomconverter.dicomhandling">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling.are_numbers_approx_equal">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling.</span></span><span class="sig-name descname"><span class="pre">are_numbers_approx_equal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">numbers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling.are_numbers_approx_equal" title="Link to this definition"></a></dt>
+<dd><p>Determines if all numbers in a list are approximately equal to each other within a specified relative tolerance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>numbers</strong> (<em>list</em>) – A list of numbers (integers or floats) to be compared.</p></li>
+<li><p><strong>rel_tol</strong> (<em>float</em>) – The relative tolerance as a non-negative number. For two numbers <cite>a</cite> and <cite>b</cite>, they are considered
+approximately equal if <cite>|a - b| &lt;= rel_tol * max(|a|, |b|)</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if all numbers in the list are approximately equal within the given relative tolerance; False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">numbers</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.00</span><span class="p">,</span> <span class="mf">1.02</span><span class="p">,</span> <span class="mf">0.98</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rel_tol</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">are_numbers_approx_equal</span><span class="p">(</span><span class="n">numbers</span><span class="p">,</span> <span class="n">rel_tol</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling.check_dicom_metadata_consistency">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling.</span></span><span class="sig-name descname"><span class="pre">check_dicom_metadata_consistency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dicom_files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling.check_dicom_metadata_consistency" title="Link to this definition"></a></dt>
+<dd><p>Check the metadata consistency of a list of DICOM files across relevant attributes, ignoring any missing attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dicom_files</strong> – A list of file paths for the DICOM files.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the metadata is consistent across relevant attributes, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling.check_itk_image">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling.</span></span><span class="sig-name descname"><span class="pre">check_itk_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling.check_itk_image" title="Link to this definition"></a></dt>
+<dd><p>Check a SimpleITK image for missing slices or non-uniform sampling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>image</strong> – The SimpleITK image to check.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the image is valid, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling.convert_photometric_interpretation">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling.</span></span><span class="sig-name descname"><span class="pre">convert_photometric_interpretation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_interpretation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Image</span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling.convert_photometric_interpretation" title="Link to this definition"></a></dt>
+<dd><p>Convert the photometric interpretation of a SimpleITK image between MONOCHROME1 and MONOCHROME2.</p>
+<p>This function reads the image’s metadata to determine its current photometric interpretation.
+If the current and target interpretations are different, it inverts the grayscale intensities
+and updates the metadata accordingly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>sitk.Image</em>) – The input SimpleITK image with MONOCHROME1 or MONOCHROME2 photometric interpretation.</p></li>
+<li><p><strong>target_interpretation</strong> (<em>str</em>) – The desired photometric interpretation (‘MONOCHROME1’ or ‘MONOCHROME2’).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The converted SimpleITK image with the desired photometric interpretation.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>sitk.Image</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>RuntimeError</strong> – If the input image does not have the ‘0028|0004’ (Photometric Interpretation) metadata key.</p></li>
+<li><p><strong>ValueError</strong> – If the current or target photometric interpretation is not supported (i.e., not ‘MONOCHROME1’ or ‘MONOCHROME2’).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling.get_affine_from_itk_image">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling.</span></span><span class="sig-name descname"><span class="pre">get_affine_from_itk_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing_tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling.get_affine_from_itk_image" title="Link to this definition"></a></dt>
+<dd><p>Calculate the affine transformation matrix for a SimpleITK image based on the metadata of the DICOM files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>image</strong> – The SimpleITK image to calculate the affine transformation for.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The affine transformation matrix as a NumPy array.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the SimpleITK image is not 2D or 3D or if the image spacing is not uniform.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling.get_dicom_files">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling.</span></span><span class="sig-name descname"><span class="pre">get_dicom_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dicom_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling.get_dicom_files" title="Link to this definition"></a></dt>
+<dd><p>Find all DICOM files in a directory and filter out RTSTRUCT files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dicom_folder</strong> – The path to the folder containing the DICOM files.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of file paths for the DICOM files that do not have a Modality attribute or have a Modality
+attribute that is not ‘RTSTRUCT’.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling.itk_resample_volume">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling.</span></span><span class="sig-name descname"><span class="pre">itk_resample_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_spacing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Image</span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling.itk_resample_volume" title="Link to this definition"></a></dt>
+<dd><p>Resample a SimpleITK image to a new spacing using the specified interpolator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> – The input SimpleITK image to resample.</p></li>
+<li><p><strong>new_spacing</strong> – The new spacing to resample the image to, as a tuple of (x, y, z) values.</p></li>
+<li><p><strong>interpolator</strong> – The interpolation method to use when resampling the image. Default is sitk.sitkLinear.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The resampled SimpleITK image.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling.load_dicom_images">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling.</span></span><span class="sig-name descname"><span class="pre">load_dicom_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dicom_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_spacing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permute_axes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">photometric_interpretation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'MONOCHROME2'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Image</span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling.load_dicom_images" title="Link to this definition"></a></dt>
+<dd><p>Load a series of DICOM images into a SimpleITK image object from a list of DICOM file paths,
+a path to a single DICOM file, or the path to a directory containing DICOM files from a single
+series.</p>
+<p>The function checks for consistency of metadata in the DICOM files. Also excludes RTStruct files.</p>
+<p>In case of inconsistent slice widths, will automatically resample voxel spacing to (1,1,1) mm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dicom_path</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em>) – A list of file paths for the DICOM files, a single path, or a directory.</p></li>
+<li><p><strong>new_spacing</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>, </em><em>float</em><em>]</em><em>]</em>) – The desired voxel spacing of the output image.
+If provided, the image will be resampled to this resolution.
+Default is None, which means the image will not be resampled.</p></li>
+<li><p><strong>orientation</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – A string specifying the desired axes orientation
+of the output image. Default is None, which means the original orientation
+will be preserved.</p></li>
+<li><p><strong>permute_axes</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>]</em>) – A list of three integers that specifies the desired order of axes in the
+output image.</p></li>
+<li><p><strong>photometric_interpretation</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – The desired photometric interpretation for the output image.
+Supported values: ‘MONOCHROME1’ or ‘MONOCHROME2’.
+Default is None, which means the original photometric interpretation
+will be preserved.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A SimpleITK image object containing the loaded DICOM images.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>RuntimeError</strong> – If no files were found, if the input path is not valid or if the series could not be read.</p></li>
+<li><p><strong>ValueError</strong> – If the DICOM metadata is not consistent across all files, or if the input arguments are not valid.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling.permute_itk_axes">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling.</span></span><span class="sig-name descname"><span class="pre">permute_itk_axes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permute_axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1,</span> <span class="pre">0,</span> <span class="pre">2]</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Image</span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling.permute_itk_axes" title="Link to this definition"></a></dt>
+<dd><p>Permutes the axes of a SimpleITK image according to the specified order.</p>
+<p>This function creates a filter to permute the axes of an image, which can be useful for reorienting images
+before processing or saving them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>sitk.Image</em>) – The SimpleITK image to permute.</p></li>
+<li><p><strong>permute_axes</strong> (<em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – The desired order of the axes after permutation.
+Default is [1, 0, 2], which swaps the first and second axes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The image after axes permutation.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>sitk.Image</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">image</span> <span class="pre">=</span> <span class="pre">sitk.ReadImage('path/to/image')</span>
+<span class="pre">permuted_image</span> <span class="pre">=</span> <span class="pre">permute_itk_axes(image,</span> <span class="pre">[2,</span> <span class="pre">1,</span> <span class="pre">0])</span>
+<span class="pre">`</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling.save_itk_image_as_nifti_nib">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling.</span></span><span class="sig-name descname"><span class="pre">save_itk_image_as_nifti_nib</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling.save_itk_image_as_nifti_nib" title="Link to this definition"></a></dt>
+<dd><p>TO BE DEPRECATED, NOT USED ANYWHERE</p>
+<p>Saves a SimpleITK image as a Nifti file using nibabel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>sitk.Image</em>) – The SimpleITK image to save.</p></li>
+<li><p><strong>file_path</strong> (<em>str</em>) – The path to the output Nifti file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the image has a non-supported pixel type.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.dicomhandling.save_itk_image_as_nifti_sitk">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.dicomhandling.</span></span><span class="sig-name descname"><span class="pre">save_itk_image_as_nifti_sitk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#niftidicomconverter.dicomhandling.save_itk_image_as_nifti_sitk" title="Link to this definition"></a></dt>
+<dd><p>Saves a SimpleITK image as a Nifti file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>sitk.Image</em>) – The SimpleITK image to save.</p></li>
+<li><p><strong>file_path</strong> (<em>str</em>) – The path to the output Nifti file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RuntimeError</strong> – If the image has a non-supported pixel type or if there is an error saving the Nifti file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-niftidicomconverter.nifti2dicom">
+<dt class="sig sig-object py" id="niftidicomconverter.nifti2dicom.nifti_rtss_to_dicom_rtss">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.nifti2dicom.</span></span><span class="sig-name descname"><span class="pre">nifti_rtss_to_dicom_rtss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nifti_rtss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_dicom_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dicom_rtss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inference_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_spacing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'original'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dicom_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clustering_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#niftidicomconverter.nifti2dicom.nifti_rtss_to_dicom_rtss" title="Link to this definition"></a></dt>
+<dd><p>Convert a NIfTI binary mask to a DICOM RT Structure Set (RTSS) file.</p>
+<p>This function takes a binary mask in NIfTI format and converts it to a DICOM RTSS file that can be used for radiation
+therapy planning. The RTSS file will contain regions of interest (ROIs) corresponding to the different labels in the
+binary mask. The function also has options for adjusting the spacing of the mask, clustering small ROIs, and working
+with a list of DICOM files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nifti_rtss</strong> (<em>str</em><em> or </em><em>np.ndarray</em>) – Path to the NIfTI binary mask file to convert, or a numpy array containing the
+binary mask data.</p></li>
+<li><p><strong>original_dicom_folder</strong> (<em>str</em>) – Path to the folder containing the original DICOM images that the NIfTI mask
+corresponds to.</p></li>
+<li><p><strong>output_dicom_rtss</strong> (<em>str</em>) – Path to save the output DICOM RTSS file to.</p></li>
+<li><p><strong>inference_threshold</strong> (<em>float</em><em>, </em><em>optional</em>) – Threshold value for the binary mask (default 0.5).</p></li>
+<li><p><strong>new_spacing</strong> (<em>tuple</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Desired spacing for the mask voxels, specified as a tuple of (x, y, z)
+values. If set to ‘original’ (default), the spacing will be set to match the original DICOM images.</p></li>
+<li><p><strong>dicom_list</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – List of paths to individual DICOM files instead of the entire DICOM series
+in <cite>original_dicom_folder</cite>.</p></li>
+<li><p><strong>clustering_threshold</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum number of ROIs to keep in the output RTSS file (default None).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-niftidicomconverter.niftihandling">
+<dt class="sig sig-object py" id="niftidicomconverter.niftihandling.read_nifti_file_nib">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.niftihandling.</span></span><span class="sig-name descname"><span class="pre">read_nifti_file_nib</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Nifti1Image</span></span></span><a class="headerlink" href="#niftidicomconverter.niftihandling.read_nifti_file_nib" title="Link to this definition"></a></dt>
+<dd><p>Loads a NIfTI file using nibabel and returns it as a nibabel Nifti1Image object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file_path</strong> (<em>str</em>) – The path to the NIfTI file to be loaded.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A nibabel Nifti1Image object representing the NIfTI file.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>FileNotFoundError</strong> – If the NIfTI file is not found.</p></li>
+<li><p><strong>nib.filebasedimages.ImageFileError</strong> – If the NIfTI file is not a valid NIfTI file.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.niftihandling.read_nifti_file_sitk">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.niftihandling.</span></span><span class="sig-name descname"><span class="pre">read_nifti_file_sitk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Image</span></span></span><a class="headerlink" href="#niftidicomconverter.niftihandling.read_nifti_file_sitk" title="Link to this definition"></a></dt>
+<dd><p>Reads a NIfTI file using SimpleITK and returns it as a SimpleITK image object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file_path</strong> (<em>str</em>) – The path to the NIfTI file to be read.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A SimpleITK image object representing the NIfTI file.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RuntimeError</strong> – If the NIfTI file could not be read or is invalid.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.niftihandling.reorient_nifti">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.niftihandling.</span></span><span class="sig-name descname"><span class="pre">reorient_nifti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Nifti1Image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Nifti1Image</span></span></span><a class="headerlink" href="#niftidicomconverter.niftihandling.reorient_nifti" title="Link to this definition"></a></dt>
+<dd><p>Reorient a NIFTI image to a specified target orientation.</p>
+<p>The target orientation is specified as a tuple of axis codes, representing each axis’s direction in 3D space.
+These codes are:
+- ‘R’ or ‘L’ for the Right or Left side of the patient.
+- ‘A’ or ‘P’ for Anterior (front) or Posterior (back) of the patient.
+- ‘S’ or ‘I’ for Superior (top) or Inferior (bottom) of the patient.</p>
+<p>For example, (‘R’, ‘A’, ‘S’) means the first axis is Right-to-Left, the second is Anterior-to-Posterior,
+and the third is Superior-to-Inferior.</p>
+<p>Parameters:
+input_data (Union[str, nib.Nifti1Image]): Path to the input NIFTI file or a loaded NIFTI image.
+target_orientation (tuple): Target orientation as a tuple of axis codes (e.g., (‘R’, ‘A’, ‘S’)).</p>
+<p>Returns:
+nib.Nifti1Image: A NIFTI image reoriented to the target orientation.</p>
+<p>Example:
+&gt;&gt;&gt; reoriented_nifti = reorient_nifti(“path/to/nifti/file.nii”, (‘R’, ‘A’, ‘S’))
+or
+&gt;&gt;&gt; nifti_img = nib.load(“path/to/nifti/file.nii”)
+&gt;&gt;&gt; reoriented_nifti = reorient_nifti(nifti_img, (‘R’, ‘A’, ‘S’))</p>
+</dd></dl>
+
+<dl class="py function" id="module-niftidicomconverter.utils">
+<dt class="sig sig-object py" id="niftidicomconverter.utils.axes_swapping">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.utils.</span></span><span class="sig-name descname"><span class="pre">axes_swapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#niftidicomconverter.utils.axes_swapping" title="Link to this definition"></a></dt>
+<dd><p>Swap the x and y axes of a 3D NumPy array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>array</strong> (<em>np.array</em>) – A 3D NumPy array with shape (z, y, x).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A copy of the input array with the x and y axes swapped, and shape (z, x, y).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.utils.copy_file_safely">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.utils.</span></span><span class="sig-name descname"><span class="pre">copy_file_safely</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_naming</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#niftidicomconverter.utils.copy_file_safely" title="Link to this definition"></a></dt>
+<dd><p>Copy a file from the source path to a destination directory, ensuring the destination filename is unique.
+This makes sure you do not overwrite another file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tmp_dir</strong> (<em>str</em>) – The path to the temporary directory where the file will be copied.</p></li>
+<li><p><strong>src</strong> (<em>str</em>) – The path to the source file to be copied.</p></li>
+<li><p><strong>dst_naming</strong> (<em>str</em>) – The desired filename for the copied file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The path to the copied file, including the unique filename suffix if necessary.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.utils.copy_nifti_header">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.utils.</span></span><span class="sig-name descname"><span class="pre">copy_nifti_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Nifti1Image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Nifti1Image</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Nifti1Image</span></span></span><a class="headerlink" href="#niftidicomconverter.utils.copy_nifti_header" title="Link to this definition"></a></dt>
+<dd><p>Copy header from src to dst while perserving the dst data.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.utils.find_clusters_itk">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.utils.</span></span><span class="sig-name descname"><span class="pre">find_clusters_itk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Image</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#niftidicomconverter.utils.find_clusters_itk" title="Link to this definition"></a></dt>
+<dd><p>Find the number of separate clusters in the mask (ITK Image).
+:param mask: a binary sitk.Image
+:param max_object: a threshold to make sure the # of object does not exceed max_object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a masked sitk.Image with cluster index
+num: number of clusters</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>label_image</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.utils.get_array_from_itk_image">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.utils.</span></span><span class="sig-name descname"><span class="pre">get_array_from_itk_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Image</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#niftidicomconverter.utils.get_array_from_itk_image" title="Link to this definition"></a></dt>
+<dd><p>Convert a SimpleITK image object to a NumPy array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>image</strong> – A SimpleITK image object.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A NumPy array with the same dimensions and pixel values as the input image.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.utils.get_binary_rtss">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.utils.</span></span><span class="sig-name descname"><span class="pre">get_binary_rtss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nifti_pred</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inference_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_spacing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#niftidicomconverter.utils.get_binary_rtss" title="Link to this definition"></a></dt>
+<dd><p>Load a NIfTI file containing an RTSS and apply a binary threshold to create a binary mask.
+Used to convert prediction probabilities to binary classification. This is relevant, e.g.,
+when an autosegmentation algorithm has yielded predictions that have been stored in a nifti
+file format and that have not yet been binarised.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nifti_pred</strong> (<em>str</em>) – The path to the NIfTI file containing the RTSS to be thresholded.</p></li>
+<li><p><strong>inference_threshold</strong> (<em>float</em>) – The threshold value to use for the binary thresholding.</p></li>
+<li><p><strong>new_spacing</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>, </em><em>float</em><em>]</em><em>]</em>) – The desired voxel spacing for the resampled image.
+If provided, the image is resampled to this voxel spacing before thresholding.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The binary mask obtained by thresholding the RTSS.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>sitk.Image</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>FileNotFoundError</strong> – If the specified NIfTI file does not exist.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-niftidicomconverter.visualisation">
+<dt class="sig sig-object py" id="niftidicomconverter.visualisation.plot_dicom_matrix">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.visualisation.</span></span><span class="sig-name descname"><span class="pre">plot_dicom_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nrows</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncols</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dicom_files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'sitk'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#niftidicomconverter.visualisation.plot_dicom_matrix" title="Link to this definition"></a></dt>
+<dd><p>Displays multiple DICOM files in a matrix of subplots.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nrows</strong> (<em>int</em>) – Number of rows in the matrix.</p></li>
+<li><p><strong>ncols</strong> (<em>int</em>) – Number of columns in the matrix.</p></li>
+<li><p><strong>dicom_files</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – List of paths to DICOM files to display.</p></li>
+<li><p><strong>figsize</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>) – Figure size (default is (10,10)).</p></li>
+<li><p><strong>indices</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – List of slice indices to display (default is None, which displays the first slice of each file).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The function displays the image matrix on the screen.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.visualisation.plot_nifti_matrix">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.visualisation.</span></span><span class="sig-name descname"><span class="pre">plot_nifti_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nrows</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncols</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nii_files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'sitk'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#niftidicomconverter.visualisation.plot_nifti_matrix" title="Link to this definition"></a></dt>
+<dd><p>Plots a matrix of NIfTI images, visualizing a single slice or 2D images from each file in a subplot grid.</p>
+<p>This function creates a grid of subplots with the specified number of rows and columns, then populates each subplot
+with an image from the list of NIfTI files provided. It uses <cite>visualize_nifti_file</cite> to handle the visualization of
+each file, supporting both SimpleITK and NiBabel for image loading. The slice index for 3D images can be specified
+through <cite>indices</cite>, allowing different slices to be visualized for each image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nrows</strong> (<em>int</em>) – Number of rows in the subplot grid.</p></li>
+<li><p><strong>ncols</strong> (<em>int</em>) – Number of columns in the subplot grid.</p></li>
+<li><p><strong>nii_files</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – List of paths to NIfTI files to be visualized.</p></li>
+<li><p><strong>figsize</strong> (<em>(</em><em>int</em><em>, </em><em>int</em><em>)</em><em>, </em><em>optional</em>) – Figure size in inches. Defaults to (10, 10).</p></li>
+<li><p><strong>indices</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – List of slice indices to visualize for each NIfTI file. If provided, must
+match the length of <cite>nii_files</cite>. If None, the first slice (index 0) is visualized for each file. Defaults to None.</p></li>
+<li><p><strong>loader</strong> (<em>str</em><em>, </em><em>optional</em>) – Specifies the library used for loading the NIfTI files. Valid values are ‘sitk’ for
+SimpleITK and ‘nib’ for NiBabel. Defaults to ‘sitk’.</p></li>
+<li><p><strong>**kwargs</strong> – Additional keyword arguments passed to the NIfTI file loading and visualization functions.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The function does not return a value but plots the NIfTI images directly.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nii_files</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;path/to/image1.nii&#39;</span><span class="p">,</span> <span class="s1">&#39;path/to/image2.nii&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_nifti_matrix</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">nii_files</span><span class="p">,</span> <span class="n">loader</span><span class="o">=</span><span class="s1">&#39;nib&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.visualisation.squeeze_if_one">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.visualisation.</span></span><span class="sig-name descname"><span class="pre">squeeze_if_one</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#niftidicomconverter.visualisation.squeeze_if_one" title="Link to this definition"></a></dt>
+<dd><p>Squeezes the input array along any dimension of size 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>arr</strong> (<em>np.ndarray</em>) – Input array to be squeezed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Squeezed array if any dimension is of size 1, otherwise the original array.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.visualisation.visualize_dicom_file">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.visualisation.</span></span><span class="sig-name descname"><span class="pre">visualize_dicom_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dicom_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'sitk'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#niftidicomconverter.visualisation.visualize_dicom_file" title="Link to this definition"></a></dt>
+<dd><p>Visualizes a DICOM file or series of files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dicom_path</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em>) – Path to a DICOM file or directory containing DICOM files.</p></li>
+<li><p><strong>slice_index</strong> (<em>int</em>) – Index of the slice to display (default is 0).</p></li>
+<li><p><strong>loader</strong> (<em>str</em>) – DICOM loader to use, either ‘sitk’ or ‘pydicom’ (default is ‘sitk’).</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em>) – Matplotlib axes object to display the image on (default is None).</p></li>
+<li><p><strong>**kwargs</strong> – Additional keyword arguments to pass to the DICOM loader.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The function displays the image on the provided axes object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.visualisation.visualize_itk_slice">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.visualisation.</span></span><span class="sig-name descname"><span class="pre">visualize_itk_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#niftidicomconverter.visualisation.visualize_itk_slice" title="Link to this definition"></a></dt>
+<dd><p>Display a 2D slice of an ITK image using matplotlib.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>sitk.Image</em>) – The ITK image to visualize.</p></li>
+<li><p><strong>slice_index</strong> (<em>int</em>) – The index of the slice to display.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.visualisation.visualize_nifti_file">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.visualisation.</span></span><span class="sig-name descname"><span class="pre">visualize_nifti_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nii_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'sitk'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#niftidicomconverter.visualisation.visualize_nifti_file" title="Link to this definition"></a></dt>
+<dd><p>Visualizes a single slice or 2D NIfTI file using SimpleITK or NiBabel for loading the image data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nii_path</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em>) – Path to the NIfTI file(s) to be visualized. Can be a single string path or a list
+of paths for batch processing with SimpleITK only.</p></li>
+<li><p><strong>slice_index</strong> (<em>int</em><em>, </em><em>optional</em>) – The index of the slice to be visualized if the image is 3D. Defaults to 0.</p></li>
+<li><p><strong>loader</strong> (<em>str</em><em>, </em><em>optional</em>) – Specifies the library used for loading the NIfTI file. Valid values are ‘sitk’ for SimpleITK
+and ‘nib’ for NiBabel. Defaults to ‘sitk’.</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em><em>, </em><em>optional</em>) – The matplotlib axis on which to display the image. If None, a new figure and
+axis are created.</p></li>
+<li><p><strong>**kwargs</strong> – Additional keyword arguments passed to the NIfTI file loading function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The function does not return a value but visualizes the NIfTI file directly.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">visualize_nifti_file</span><span class="p">(</span><span class="s1">&#39;path/to/image.nii&#39;</span><span class="p">,</span> <span class="n">slice_index</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">loader</span><span class="o">=</span><span class="s1">&#39;nib&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="niftidicomconverter.visualisation.visualize_nifti_slice">
+<span class="sig-prename descclassname"><span class="pre">niftidicomconverter.visualisation.</span></span><span class="sig-name descname"><span class="pre">visualize_nifti_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Nifti1Image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'gray'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#niftidicomconverter.visualisation.visualize_nifti_slice" title="Link to this definition"></a></dt>
+<dd><p>Visualizes a slice of a Nifti image using Matplotlib.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nifti_file</strong> (<em>str</em>) – The path to the Nifti file.</p></li>
+<li><p><strong>slice_index</strong> (<em>int</em>) – The index of the slice to visualize.</p></li>
+<li><p><strong>cmap</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – The colormap to use. Default is ‘gray’.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to nifti dicom converter’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Björn Ahlgren.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

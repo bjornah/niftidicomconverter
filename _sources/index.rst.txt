@@ -9,22 +9,16 @@ Welcome to nifti dicom converter's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+   
+   niftidicomconverter
 
 
 
-Indices and tables
-==================
+.. Indices and tables
+.. ==================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. * :ref:`genindex`
+.. * :ref:`modindex`
+.. * :ref:`search`
 
-Documentation
-=======================
 
-.. automodule:: niftidicomconverter
-    :members:
-    :undoc-members:
-    :private-members:
-    :special-members:
-    :imported-members:
