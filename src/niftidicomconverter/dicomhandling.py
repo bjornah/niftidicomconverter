@@ -15,22 +15,21 @@ def are_numbers_approx_equal(numbers: list, rel_tol: float) -> bool:
     """
     Determines if all numbers in a list are approximately equal to each other within a specified relative tolerance.
 
-    Parameters:
-    - numbers (list): A list of numbers (integers or floats) to be compared.
-    - rel_tol (float): The relative tolerance as a non-negative number. For two numbers `a` and `b`, they are considered
-      approximately equal if `|a - b| <= rel_tol * max(|a|, |b|)`.
+    Args:
+        numbers (list): A list of numbers (integers or floats) to be compared.
+        rel_tol (float): The relative tolerance as a non-negative number. For two numbers `a` and `b`, they are considered
+          approximately equal if `|a - b| <= rel_tol * max(|a|, |b|)`.
 
     Returns:
-    - bool: True if all numbers in the list are approximately equal within the given relative tolerance; False otherwise.
+        bool: True if all numbers in the list are approximately equal within the given relative tolerance; False otherwise.
 
     Example:
-    ```python
-    numbers = [1.00, 1.02, 0.98]
-    rel_tol = 0.05
-    print(are_numbers_approx_equal(numbers, rel_tol))
-    # Output: True
-    ```
+        >>> numbers = [1.00, 1.02, 0.98]
+        >>> rel_tol = 0.05
+        >>> are_numbers_approx_equal(numbers, rel_tol)
+        True
     """
+
     arr = np.array(numbers)
     min_val = np.min(arr)
     return np.all(np.isclose(arr, min_val, rtol=rel_tol))
@@ -407,7 +406,28 @@ def save_itk_image_as_nifti_sitk(image: sitk.Image, file_path: str) -> None:
         raise RuntimeError(f"Error saving image to file: {e}")    
 
 
-def permute_itk_axes(image, permute_axes=[1,0,2]):
+def permute_itk_axes(image, permute_axes=[1,0,2]) -> sitk.Image:
+    """
+    Permutes the axes of a SimpleITK image according to the specified order.
+
+    This function creates a filter to permute the axes of an image, which can be useful for reorienting images
+    before processing or saving them.
+
+    Args:
+        image (sitk.Image): The SimpleITK image to permute.
+        permute_axes (List[int], optional): The desired order of the axes after permutation. 
+                                             Default is [1, 0, 2], which swaps the first and second axes.
+
+    Returns:
+        sitk.Image: The image after axes permutation.
+
+    Example:
+        ```python
+        image = sitk.ReadImage('path/to/image')
+        permuted_image = permute_itk_axes(image, [2, 1, 0])
+        ```
+    """
+
     # create a filter to permute axes
     permute_filter = sitk.PermuteAxesImageFilter()
     permute_filter.SetOrder(permute_axes)  # permute the axes

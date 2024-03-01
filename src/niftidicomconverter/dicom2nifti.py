@@ -25,7 +25,7 @@ def convert_dicom_to_nifti(dicom_path: Union[str, List[str]], file_path: str, lo
         **kwargs: Optional keyword arguments to pass to the `load_dicom_images` function.
 
     Returns:
-        None.
+        None
 
     Raises:
         RuntimeError: If the DICOM series could not be read or the NIfTI file could not be saved.
@@ -53,27 +53,26 @@ def fetch_mapped_rois(rtstruct: RTStruct, structure_map: dict) -> np.ndarray:
     dimensions of the masks, and the fourth dimension indexes the structures plus a background layer.
     The background layer is set to 1 for voxels not belonging to any ROI.
 
-    Parameters:
-    - rtstruct (RTStruct): An object representing the RT structure set, which must have methods
-      `get_roi_names()` and `get_roi_mask_by_name(roi_name)`.
-    - structure_map (dict): A mapping from structure index (as integer keys) to lists of structure names
-      (as strings). The function maps each ROI to these indices based on matching names.
+    Args:
+        rtstruct (RTStruct): An object representing the RT structure set, which must have methods
+            `get_roi_names()` and `get_roi_mask_by_name(roi_name)`.
+        structure_map (dict): A mapping from structure index (as integer keys) to lists of structure names
+            (as strings). The function maps each ROI to these indices based on matching names.
 
     Returns:
-    - np.ndarray: A 4D numpy array of uint8, where each slice along the fourth dimension represents a mask
-      for a different structure, including an additional background layer as the first index.
+        np.ndarray: A 4D numpy array of uint8, where each slice along the fourth dimension represents a mask
+            for a different structure, including an additional background layer as the first index.
 
     Raises:
-    - Logs an error and breaks the current iteration if `get_roi_mask_by_name` raises an Exception.
+        Exception: Logs an error and breaks the current iteration if `get_roi_mask_by_name` raises an Exception.
 
     Example:
-    ```python
-    rtstruct = load_rtstruct("path/to/dicom/folder")
-    structure_map = {0: ["Structure1", "Structure2"], 1: ["Structure3"]}
-    masks = fetch_mapped_rois(rtstruct, structure_map)
-    ```
+        ```python
+        rtstruct = load_rtstruct("path/to/dicom/folder")
+        structure_map = {0: ["Structure1", "Structure2"], 1: ["Structure3"]}
+        masks = fetch_mapped_rois(rtstruct, structure_map)
+        ```
     """
-
 
     masks = {}
     roi_names = rtstruct.get_roi_names()
@@ -134,26 +133,24 @@ def fetch_rtstruct_roi_masks(
     If a structure map is provided, it uses `fetch_mapped_rois` to fetch and map ROIs to the specified
     structure map. If no structure map is provided, it fetches all ROIs using `fetch_all_rois`.
 
-    Parameters:
-    - rtstruct (RTStruct): An object representing the RT structure set, which must have methods
-      `get_roi_names()` and `get_roi_mask_by_name(roi_name)`.
-    - structure_map (dict, optional): A mapping from structure index (as integer keys) to lists of
-      structure names (as strings). If provided, ROIs are mapped to these indices based on matching names.
-      If None, all ROI masks are fetched without mapping.
+    Args:
+        rtstruct (RTStruct): An object representing the RT structure set, which must have methods
+            `get_roi_names()` and `get_roi_mask_by_name(roi_name)`.
+        structure_map (dict, optional): A mapping from structure index (as integer keys) to lists of
+            structure names (as strings). If provided, ROIs are mapped to these indices based on matching names.
+            If None, all ROI masks are fetched without mapping.
 
     Returns:
-    - np.ndarray: A numpy array of masks. The array is 4D if `structure_map` is provided and mapping
-      is performed, otherwise, a 3D array representing a flat mask of all ROIs.
+        np.ndarray: A numpy array of masks. The array is 4D if `structure_map` is provided and mapping
+            is performed, otherwise, a 3D array representing a flat mask of all ROIs.
 
     Example:
-    ```python
-    rtstruct = load_rtstruct("path/to/dicom/folder")
-    structure_map = {0: ["Structure1", "Structure2"], 1: ["Structure3"]}
-    masks = fetch_rtstruct_roi_masks(rtstruct, structure_map)
-    ```
+        ```python
+        rtstruct = load_rtstruct("path/to/dicom/folder")
+        structure_map = {0: ["Structure1", "Structure2"], 1: ["Structure3"]}
+        masks = fetch_rtstruct_roi_masks(rtstruct, structure_map)
+        ```
     """
-
-
     if structure_map is not None:
         masks = fetch_mapped_rois(rtstruct, structure_map)
 
@@ -169,19 +166,19 @@ def fetch_all_rois(rtstruct: RTStruct) -> np.ndarray:
     and aggregates these masks into a single flat mask where each voxel's value indicates
     the presence (1) or absence (0) of any ROI.
 
-    Parameters:
-    - rtstruct (RTStruct): An object representing the RT structure set, which must have methods
-      `get_roi_names()` and `get_roi_mask_by_name(roi_name)`.
+    Args:
+        rtstruct (RTStruct): An object representing the RT structure set, which must have methods
+            `get_roi_names()` and `get_roi_mask_by_name(roi_name)`.
 
     Returns:
-    - np.ndarray: A 3D numpy array of uint8, representing the aggregated presence of all ROIs.
-      If no ROIs are present, returns None.
+        np.ndarray: A 3D numpy array of uint8, representing the aggregated presence of all ROIs.
+            If no ROIs are present, returns None.
 
     Example:
-    ```python
-    rtstruct = load_rtstruct("path/to/dicom/folder")
-    flat_mask = fetch_all_rois(rtstruct)
-    ```
+        ```python
+        rtstruct = load_rtstruct("path/to/dicom/folder")
+        flat_mask = fetch_all_rois(rtstruct)
+        ```
     """
 
 
@@ -243,15 +240,15 @@ def convert_dicom_rtss_to_nifti(
     creating a binary mask for each ROI defined in the RTSS and mapping these to a specified
     structure map. The masks are then saved as a NIfTI file.
 
-    Parameters:
-    - dicom_folder (str): Path to the folder containing the DICOM series associated with the RTSS.
-    - dicom_rtss_path (str): Path to the DICOM RT Structure Set file to be converted.
-    - output_nifti_path (str): Destination path where the resulting NIfTI file will be saved.
-    - structure_map (dict): A mapping from structure indices (integer keys) to lists of structure
-      names (strings) that specifies how ROI masks should be organized in the NIfTI file.
+    Args:
+        dicom_folder (str): Path to the folder containing the DICOM series associated with the RTSS.
+        dicom_rtss_path (str): Path to the DICOM RT Structure Set file to be converted.
+        output_nifti_path (str): Destination path where the resulting NIfTI file will be saved.
+        structure_map (dict): A mapping from structure indices (integer keys) to lists of structure
+            names (strings) that specifies how ROI masks should be organized in the NIfTI file.
 
     Returns:
-    - None: The function saves the generated NIfTI file to the specified output path but does not return any value.
+        None: The function saves the generated NIfTI file to the specified output path but does not return any value.
     """
 
 
