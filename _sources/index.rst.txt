@@ -18,3 +18,13 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+Documentation
+=======================
+
+.. automodule:: niftidicomconverter
+    :members:
+    :undoc-members:
+    :private-members:
+    :special-members:
+    :imported-members:
