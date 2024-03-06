@@ -4,10 +4,10 @@ import tempfile
 import os
 import logging
 
-from typing import List, Union
+from typing import List, Union, Optional, Tuple
 from rt_utils import RTStructBuilder, RTStruct
 
-from niftidicomconverter.dicomhandling import load_dicom_images, save_itk_image_as_nifti_sitk, get_affine_from_itk_image
+from niftidicomconverter.dicomhandling import load_dicom_images, save_itk_image_as_nifti_sitk, get_affine_from_itk_image, itk_resample_volume
 from niftidicomconverter.dicomhandling_pydicom import load_dicom_images_pydicom, save_pydicom_to_nifti_nib
 from niftidicomconverter.utils import copy_nifti_header
 
@@ -230,7 +230,8 @@ def convert_dicom_rtss_to_nifti(
     dicom_folder: str,
     dicom_rtss_path: str,
     output_nifti_path: str,
-    structure_map: dict
+    structure_map: dict,
+    new_spacing: Optional[Tuple[float, float, float]] = None, 
 ) -> None:
     """
     Converts a DICOM RT Structure Set (RTSS) file into a NIfTI format binary mask file,
@@ -265,13 +266,17 @@ def convert_dicom_rtss_to_nifti(
     # To match with the dicom2nifti.dicom_series_to_nifti orientation
     rtss_mask = np.swapaxes(rtss_mask, 0, 1)
 
+    if new_spacing is not None:
+        print(f'resampling image to resolution {new_spacing} mm')
+        rtss_mask = itk_resample_volume(img=rtss_mask, new_spacing=new_spacing)
+
     rtss_nii = nib.Nifti1Image(rtss_mask, affine=np.eye(4)) # note that the affine will be calculated from the header later, so don't need to calculate the affine here
 
     # this is to get the header of the original dicom
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmpfile = os.path.join(tmp_dir, 'image.nii')
 
-        dicom_image_sitk = load_dicom_images(dicom_folder)
+        dicom_image_sitk = load_dicom_images(dicom_folder, new_spacing=new_spacing)
         save_itk_image_as_nifti_sitk(dicom_image_sitk, tmpfile)
 
         nifti_image_src = nib.load(tmpfile)
