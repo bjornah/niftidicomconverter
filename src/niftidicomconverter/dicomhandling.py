@@ -34,7 +34,8 @@ def are_numbers_approx_equal(numbers: list, rel_tol: float) -> bool:
     min_val = np.min(arr)
     return np.all(np.isclose(arr, min_val, rtol=rel_tol))
 
-
+def check_approx_equal_dim1(arr, rel_tol: float) -> bool:
+    return all(map(lambda x: are_numbers_approx_equal(x, rel_tol=rel_tol), arr.T))
 
 
 def check_itk_image(image: sitk.Image, spacing_tolerance=1e-5) -> bool:
@@ -59,16 +60,20 @@ def check_itk_image(image: sitk.Image, spacing_tolerance=1e-5) -> bool:
             print(f"Error: missing slice {i}.")
             return False
 
-    # Check for non-uniform sampling
+    # Check for non-uniform sampling across slices
     spacing = image.GetSpacing()
-    if len(set(spacing)) != 1:
+    if (len(spacing) != 3) and (len(set(spacing)) != 1): # this checks for non-uniform sampling by first checking if there is more than one spacing value (spacing values are 3-tuples) and then checking if all spacing values are the same (set(spacing) != 1), which they should not be if you got back more than one set of spacings
         print(f"non-iniform spacing detected. Spacings = {spacing}")
-        if are_numbers_approx_equal(spacing, spacing_tolerance):
-            print(f"Spacings within tolerance of {spacing_tolerance}, continue with conversion to nifti")
-        else:
-            # raise ValueError(f"Non-uniform spacing detected at greater than factor {1+spacing_tolerance}. Affine calculation not possible.")
-            print(f"Non-uniform spacing at more than relative difference of {spacing_tolerance}.")
-            return False
+        spacing_array = np.array(spacing)
+        return check_approx_equal_dim1(spacing_array)
+
+        # print(f"currently, there is no check for how large this discrepancy across slices is. This should be implemented, so that miniscule differences stemming from numerical noise can be disregarded.")
+        # if are_numbers_approx_equal(spacing, spacing_tolerance):
+        #     print(f"Spacings within tolerance of {spacing_tolerance}, continue with conversion to nifti")
+        # else:
+        #     # raise ValueError(f"Non-uniform spacing detected at greater than factor {1+spacing_tolerance}. Affine calculation not possible.")
+        #     print(f"Non-uniform spacing at more than relative difference of {spacing_tolerance}.")
+        # return False
         
     # spacing = image.GetSpacing()
     # for i in range(1, num_slices):
