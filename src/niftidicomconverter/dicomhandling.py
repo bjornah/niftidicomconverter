@@ -6,6 +6,7 @@ import nibabel as nib
 
 import pydicom
 import tempfile
+import logging
 
 from typing import Tuple, Optional, List, Union
 
@@ -263,9 +264,10 @@ def load_dicom_images(dicom_path: Union[str, List[str]], new_spacing: Optional[T
         image = itk_resample_volume(img=image, new_spacing=new_spacing)
     
     if not check_itk_image(image):
-        print('resampling image due to inconsistencies in original image')
-        print('setting new spacing to (1,1,1) mm')
-        image = itk_resample_volume(img=image, new_spacing=(1,1,1))
+        raise RuntimeError("Inconsistent slice widths detected! You should resample the dicom images to a uniform voxel spacing. Make sure to also resample any rtss images")
+        # print('resampling image due to inconsistencies in original image')
+        # print('setting new spacing to (1,1,1) mm')
+        # image = itk_resample_volume(img=image, new_spacing=(1,1,1))
     
     if permute_axes is not None:
         image = permute_itk_axes(image, permute_axes=permute_axes)
