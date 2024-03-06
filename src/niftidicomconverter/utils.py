@@ -143,6 +143,24 @@ def copy_nifti_header(src: nib.Nifti1Image, dst: nib.Nifti1Image) -> nib.Nifti1I
     data = dst.get_fdata()
     return nib.nifti1.Nifti1Image(data, None, header=src.header)
 
+def calculate_new_affine(old_affine, old_spacing, new_spacing, dimensions):
+    """
+    Calculate the new affine matrix after resampling.
+
+    Parameters:
+    old_affine (np.array): The original affine matrix.
+    old_spacing (tuple): The original spacing.
+    new_spacing (tuple): The new spacing.
+    dimensions (list): The dimensions that are being resampled.
+
+    Returns:
+    np.array: The new affine matrix.
+    """
+    new_affine = old_affine.copy()
+    for dim in dimensions:
+        scale = old_spacing[dim] / new_spacing[dim]
+        new_affine[dim, :3] *= scale
+    return new_affine
 
 # def itk_resample_volume(
 #     img: sitk.Image, 

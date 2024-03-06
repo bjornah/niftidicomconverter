@@ -340,61 +340,61 @@ def get_affine_from_itk_image(image: sitk.Image, spacing_tolerance=1e-5) -> np.n
 
     return affine
 
-def save_itk_image_as_nifti_nib(image: sitk.Image, file_path: str) -> None:
-    """
-    TO BE DEPRECATED, NOT USED ANYWHERE
+# def save_itk_image_as_nifti_nib(image: sitk.Image, file_path: str) -> None:
+#     """
+#     DEPRECATED, USE save_itk_image_as_nifti_sitk INSTEAD
+# 
+#     Saves a SimpleITK image as a Nifti file using nibabel.
 
-    Saves a SimpleITK image as a Nifti file using nibabel.
+#     Args:
+#         image (sitk.Image): The SimpleITK image to save.
+#         file_path (str): The path to the output Nifti file.
 
-    Args:
-        image (sitk.Image): The SimpleITK image to save.
-        file_path (str): The path to the output Nifti file.
+#     Raises:
+#         ValueError: If the image has a non-supported pixel type.
+#     """
+#     # Convert the SimpleITK image to a Numpy array
+#     np_array = sitk.GetArrayFromImage(image)
 
-    Raises:
-        ValueError: If the image has a non-supported pixel type.
-    """
-    # Convert the SimpleITK image to a Numpy array
-    np_array = sitk.GetArrayFromImage(image)
+#     # Get the affine transformation 
+#     affine = get_affine_from_itk_image(image)
 
-    # Get the affine transformation 
-    affine = get_affine_from_itk_image(image)
+#     # Create a Nifti1Image from the Numpy array and affine
+#     nifti_image = nib.Nifti1Image(np_array, affine)
 
-    # Create a Nifti1Image from the Numpy array and affine
-    nifti_image = nib.Nifti1Image(np_array, affine)
-
-    # Get some metadata from the original SimpleITK image
-    direction = np.array(image.GetDirection()).reshape((3, 3))
-    origin = np.array(image.GetOrigin())
-    spacing = np.array(image.GetSpacing())
-    dimensions = np.array(image.GetSize())
+#     # Get some metadata from the original SimpleITK image
+#     direction = np.array(image.GetDirection()).reshape((3, 3))
+#     origin = np.array(image.GetOrigin())
+#     spacing = np.array(image.GetSpacing())
+#     dimensions = np.array(image.GetSize())
     
-    # Add the metadata to the NIfTI header
-    qform = np.eye(4)
-    qform[0:3, 0:3] = np.array(direction).reshape((3, 3)) * np.array(spacing).reshape((3, 1))
-    qform[0:3, 3] = origin
+#     # Add the metadata to the NIfTI header
+#     qform = np.eye(4)
+#     qform[0:3, 0:3] = np.array(direction).reshape((3, 3)) * np.array(spacing).reshape((3, 1))
+#     qform[0:3, 3] = origin
     
 
-    sform = np.eye(4)
-    sform[0:3, 0:3] = np.array(direction).reshape((3, 3)) * np.array(spacing).reshape((3, 1))
-    sform[0:3, 3] = origin
+#     sform = np.eye(4)
+#     sform[0:3, 0:3] = np.array(direction).reshape((3, 3)) * np.array(spacing).reshape((3, 1))
+#     sform[0:3, 3] = origin
     
     
-    # Add the metadata to the NIfTI header
-    # nifti_image.header['q_form'](qform, code=1)
-    # nifti_image.header['s_form'](sform, code=1)
-    nifti_image.header.set_qform(qform)
-    nifti_image.header.set_sform(sform)
-    nifti_image.header['qoffset_x'] = origin[0]
-    nifti_image.header['qoffset_y'] = origin[1]
-    nifti_image.header['qoffset_z'] = origin[2]
-    nifti_image.header['pixdim'][1:4] = spacing
-    nifti_image.header['dim'][1:4] = dimensions
+#     # Add the metadata to the NIfTI header
+#     # nifti_image.header['q_form'](qform, code=1)
+#     # nifti_image.header['s_form'](sform, code=1)
+#     nifti_image.header.set_qform(qform)
+#     nifti_image.header.set_sform(sform)
+#     nifti_image.header['qoffset_x'] = origin[0]
+#     nifti_image.header['qoffset_y'] = origin[1]
+#     nifti_image.header['qoffset_z'] = origin[2]
+#     nifti_image.header['pixdim'][1:4] = spacing
+#     nifti_image.header['dim'][1:4] = dimensions
 
-    # Save the Nifti1Image to file
-    try:
-        nib.save(nifti_image, file_path)
-    except Exception as e:
-        raise ValueError(f"Error saving image to file: {e}")
+#     # Save the Nifti1Image to file
+#     try:
+#         nib.save(nifti_image, file_path)
+#     except Exception as e:
+#         raise ValueError(f"Error saving image to file: {e}")
 
 def save_itk_image_as_nifti_sitk(image: sitk.Image, file_path: str) -> None:
     """

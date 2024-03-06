@@ -2,6 +2,7 @@ import SimpleITK as sitk
 import nibabel as nib
 from typing import Union
 import numpy as np
+from scipy.ndimage import zoom
 
 def read_nifti_file_sitk(file_path: str) -> sitk.Image:
     """
@@ -117,3 +118,90 @@ def reorient_nifti(input_data: Union[str, nib.Nifti1Image], target_orientation: 
         print(f'new axcode = {nib.aff2axcodes(reoriented_nifti.affine)}')
 
     return reoriented_nifti
+
+def resample_3d_volume(data, scale_factors, order=2):
+    """
+    Resample a single 3D volume.
+
+    Args:
+        data: The 3D numpy array to be resampled.
+        scale_factors: The scale factors for resampling.
+        order: The order of the spline interpolation. Default is 2 (bi-linear).
+
+    Returns:
+        The resampled 3D volume as a numpy array.
+    """
+    return zoom(data, scale_factors, order=order)
+
+def resample_nifti_to_new_spacing(nifti_file_path: str, new_spacing: tuple[float, float, float], save_path: str = None) -> nib.Nifti1Image:
+    """
+    Resample a NIfTI image (3D or 4D) to the specified spacing for the first three dimensions, preserving the fourth dimension.
+
+    Args:
+        nifti_file_path: The file path to the input NIfTI image.
+        new_spacing: A tuple of three floats representing the new spacing (x, y, z).
+        save_path: Optional. If provided, the resampled NIfTI image will be saved to this path.
+
+    Returns:
+        The resampled NIfTI image as a nibabel Nifti1Image object.
+
+    Note:
+        This function does not interpolate across the fourth dimension if present.
+    """
+    # Load the NIfTI file
+    nifti_img = nib.load(nifti_file_path)
+    data = nifti_img.get_fdata()
+    original_affine = nifti_img.affine
+
+    # Calculate the scale factors for each dimension
+    original_spacing = np.sqrt((original_affine[:3, :3] ** 2).sum(axis=0))
+    scale_factors = original_spacing / np.array(new_spacing)
+
+    # Check if the image is 4D
+    if data.ndim == 4:
+        # Resample each 3D volume independently
+        resampled_data = np.array([resample_3d_volume(data[:, :, :, i], scale_factors, order=2) for i in range(data.shape[3])]).transpose((1, 2, 3, 0))
+    else:
+        # Resample the 3D image
+        resampled_data = resample_3d_volume(data, scale_factors, order=2)
+
+    # Construct the new affine matrix
+    new_affine = original_affine.copy()
+    np.fill_diagonal(new_affine, np.append(new_spacing, [1]))
+    new_affine[:3, 3] = original_affine[:3, 3] * scale_factors  # Adjust translation part
+
+    # Create a new NIfTI image with the resampled data and new affine
+    resampled_nifti_img = nib.Nifti1Image(resampled_data, new_affine, header=nifti_img.header)
+
+    # Update the header (e.g., update the pixdim to reflect the new spacing)
+    resampled_nifti_img.header['pixdim'][1:4] = new_spacing
+
+    # Save the resampled image if a save path is provided
+    if save_path:
+        nib.save(resampled_nifti_img, save_path)
+
+    return resampled_nifti_img
+
+
+# def resample_nifti_rtss(
+#     nifti_rtss_path:str,
+#     output_nifti_path:str,
+#     new_spacing: Optional[Tuple[float, float, float]] = None, 
+# ):
+#     rtss_sitk = read_nifti_file_sitk(nifti_rtss_path)
+
+#     print(f'resampling image to resolution {new_spacing} mm')
+#     image = itk_resample_volume(img=image, new_spacing=new_spacing)
+
+#     # this is to get the header of the original dicom
+#     with tempfile.TemporaryDirectory() as tmp_dir:
+#         tmpfile = os.path.join(tmp_dir, 'image.nii')
+
+#         dicom_image_sitk = load_dicom_images(dicom_folder)
+#         save_itk_image_as_nifti_sitk(dicom_image_sitk, tmpfile)
+
+#         nifti_image_src = nib.load(tmpfile)
+
+#         nib_rtss = copy_nifti_header(nifti_image_src, rtss_nii)
+
+#     nib.save(nib_rtss, output_nifti_path)
