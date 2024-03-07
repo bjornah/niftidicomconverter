@@ -133,7 +133,7 @@ def resample_3d_volume(data, scale_factors, order=2):
     """
     return zoom(data, scale_factors, order=order)
 
-def resample_nifti_to_new_spacing(nifti_file_path: str, new_spacing: tuple[float, float, float], save_path: str = None) -> nib.Nifti1Image:
+def resample_nifti_to_new_spacing(nifti_file_path: str, new_spacing: tuple[float, float, float], interpolation_order: int=3, save_path: str = None) -> nib.Nifti1Image:
     """
     Resample a NIfTI image (3D or 4D) to the specified spacing for the first three dimensions, preserving the fourth dimension.
 
@@ -160,10 +160,10 @@ def resample_nifti_to_new_spacing(nifti_file_path: str, new_spacing: tuple[float
     # Check if the image is 4D
     if data.ndim == 4:
         # Resample each 3D volume independently
-        resampled_data = np.array([resample_3d_volume(data[:, :, :, i], scale_factors, order=2) for i in range(data.shape[3])]).transpose((1, 2, 3, 0))
+        resampled_data = np.array([resample_3d_volume(data[:, :, :, i], scale_factors, order=interpolation_order) for i in range(data.shape[3])]).transpose((1, 2, 3, 0))
     else:
         # Resample the 3D image
-        resampled_data = resample_3d_volume(data, scale_factors, order=2)
+        resampled_data = resample_3d_volume(data, scale_factors, order=interpolation_order)
 
     # Construct the new affine matrix
     new_affine = original_affine.copy()
