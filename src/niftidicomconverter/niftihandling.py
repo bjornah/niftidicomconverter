@@ -3,6 +3,7 @@ import nibabel as nib
 from typing import Union
 import numpy as np
 from scipy.ndimage import zoom
+from scipy.ndimage import label, generate_binary_structure
 
 def read_nifti_file_sitk(file_path: str) -> sitk.Image:
     """
@@ -182,6 +183,61 @@ def resample_nifti_to_new_spacing(nifti_file_path: str, new_spacing: tuple[float
 
     return resampled_nifti_img
 
+def detection_and_segmentation_binarization_2D(prob_map: np.ndarray, detection_threshold: float, binarization_threshold: float) -> np.ndarray:
+    """
+    Binarization of a 2D probability map using two independent thresholds. It includes new binarized areas
+    only if they are connected to previously detected areas from the detection threshold.
+
+    Args:
+        prob_map (np.ndarray): A 2D tensor representing the probability of each pixel.
+        detection_threshold (float): Threshold used to detect core regions of the targets.
+        binarization_threshold (float): Threshold used to further binarize the map, including connected components.
+
+    Returns:
+        np.ndarray: A binarized 2D map where pixels are set to 1 if they are above the binarization threshold
+                    and connected to detected components, others are 0.
+
+    Example:
+        >>> prob_map = np.random.rand(100, 100)
+        >>> detection_threshold = 0.7
+        >>> binarization_threshold = 0.5
+        >>> final_map = refine_binarization_with_connection_2d(prob_map, detection_threshold, binarization_threshold)
+        >>> print(final_map.shape)
+    """
+    try:
+        # Apply the detection threshold and label the detected components
+        detection_map = prob_map > detection_threshold
+        struct = generate_binary_structure(3, 3)  # 2D connectivity
+        labeled_detection, num_features = label(detection_map, structure=struct)
+
+        # Apply the binarization threshold
+        binarization_map = prob_map > binarization_threshold
+        labeled_binarization, num_binarized_features = label(binarization_map, structure=struct)
+
+        # Create the final map
+        # final_map = np.zeros_like(prob_map, dtype=bool)
+        final_map = np.zeros_like(prob_map, dtype=np.uint8)
+
+        # Iterate over each component in the binarization map
+        for component in range(1, num_binarized_features + 1):
+            component_mask = labeled_binarization == component
+
+            # Check if any part of this component overlaps with any detected component
+            overlap = np.any(np.isin(labeled_detection[component_mask], range(1, num_features + 1)))
+            if overlap:
+                final_map[component_mask] = True
+
+        return final_map
+
+
+    except Exception as e:
+        print(f"Error processing the binarization: {str(e)}")
+        print(f"prob_map.shape: {prob_map.shape}")
+        print(f"detection_threshold: {detection_threshold}")
+        print(f"binarization_threshold: {binarization_threshold}")
+        print(f'prob_map.min(): {prob_map.min()}')
+        print(f'prob_map.max(): {prob_map.max()}')
+        return prob_map
 
 # def resample_nifti_rtss(
 #     nifti_rtss_path:str,

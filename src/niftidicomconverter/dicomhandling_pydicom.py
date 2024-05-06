@@ -8,6 +8,10 @@ import pydicom
 import scipy.ndimage
 
 from typing import Tuple, Optional, List, Union
+from pydicom.encaps import encapsulate
+from scipy.signal import resample_poly
+from scipy.interpolate import interp1d
+from scipy.signal import savgol_filter
 
 from .dicomhandling import check_dicom_metadata_consistency
 
@@ -108,9 +112,6 @@ def orient_volume_pydicom(image: np.ndarray, orientation: str) -> np.ndarray:
     image = np.flip(image, flip_matrix)
     return image
 
-import pydicom
-from pydicom.encaps import encapsulate
-
 def convert_photometric_interpretation_pydicom(dcm: pydicom.dataset.FileDataset, target_interpretation: str) -> pydicom.dataset.FileDataset:
     """
     Convert the photometric interpretation of a Pydicom dataset to the specified target interpretation.
@@ -139,6 +140,8 @@ def convert_photometric_interpretation_pydicom(dcm: pydicom.dataset.FileDataset,
         dcm.PhotometricInterpretation = target_interpretation
 
     return dcm
+
+
 
 
 def load_dicom_images_pydicom(paths: Union[str, List[str]], new_spacing: Optional[Tuple[float, float, float]] = None, 
@@ -317,3 +320,134 @@ def pydicom_to_simpleitk(dcm: pydicom.dataset.FileDataset) -> sitk.Image:
             image.SetMetaData(key, str(value))
 
     return image
+
+################################################################################
+# upsampling contours #
+################################################################################
+
+def smooth_and_upsample_contours(contours, window_length, polyorder, upsample_factor, kind='quadratic'):
+    """
+    Smooths and upsamples the given contours using Savitzky-Golay smoothing and linear interpolation.
+
+    Args:
+        contours (list of numpy.ndarray): List of contours to be smoothed and upsampled. Each contour is a 2D array where each row represents a point (x, y, z).
+        window_length (int): The length of the window for the Savitzky-Golay filter. Must be an odd integer.
+        polyorder (int): The order of the polynomial used in the Savitzky-Golay filter.
+        upsample_factor (int): The factor by which to upsample the contours.
+        kind (str): The kind of interpolation used for upsampling. Default is 'quadratic'.
+
+    Returns:
+        list of list: The smoothed and upsampled contours. Each contour is flattened into a 1D list.
+
+    Raises:
+        ValueError: If `window_length` is not a positive odd integer.
+        ValueError: If `polyorder` is not a non-negative integer less than `window_length`.
+        ValueError: If `upsample_factor` is not a positive integer.
+    """
+    smoothed_and_upsampled_contours = []
+    
+
+    for i, contour in enumerate(contours):
+        print(f"Smoothing and upsampling {len(contour)} contours...")
+        # Reshape the contour data
+        contour = np.reshape(contour, (-1, 3))
+
+        # Create a new array for the upsampled contour
+        upsampled_contour = np.zeros((contour.shape[0] * upsample_factor, 3))
+
+        # Upsample the x and y coordinates of the contour data
+        # upsampled_contour[:, :2] = resample_poly(contour[:, :2], upsample_factor, 1)
+
+        # Create an array of the original indices
+        old_indices = np.arange(contour.shape[0])
+
+        # Create an array of the upsampled indices
+        new_indices = np.linspace(0, contour.shape[0] - 1, contour.shape[0] * upsample_factor)
+
+        # Perform linear interpolation for the x and y coordinates
+        for j in range(2):
+            interpolator = interp1d(old_indices, contour[:, j], kind=kind)
+            upsampled_contour[:, j] = interpolator(new_indices)
+
+        # Copy the z coordinates from the original contour
+        upsampled_contour[:, 2] = np.repeat(contour[:, 2], upsample_factor)
+
+        # Check if the contour is too small
+        if upsampled_contour.shape[0] < window_length:
+            # If so, notify the user and skip the smoothing operation
+            print(f"Contour {i} has fewer points ({upsampled_contour.shape[0]}) than the window length ({window_length}). Skipping smoothing.")
+            smoothed_and_upsampled_contours.append(upsampled_contour.flatten().tolist())
+            continue
+
+        # Apply Savitzky-Golay smoothing
+        upsampled_contour = savgol_filter(upsampled_contour, window_length, polyorder, axis=0)
+        # smoothed_contour = upsampled_contour
+
+        # Flatten the smoothed contour data and convert it to a list
+        upsampled_contour = upsampled_contour.flatten().tolist()
+
+        smoothed_and_upsampled_contours.append(upsampled_contour)
+        print(f'len(smoothed_contour) = {len(upsampled_contour)}')
+        
+    return smoothed_and_upsampled_contours
+
+def update_contours_in_dicom_file(dicom_file_path, window_length, polyorder, upsample_factor, upsampling_kind='quadratic'):
+    """
+    Update the contours in a DICOM file by smoothing and upsampling the contour data.
+
+    The upsampling happens first and the smoothing second. 
+
+    Args:
+        dicom_file_path (str): The path to the DICOM file.
+        window_length (int): The length of the smoothing window.
+        polyorder (int): The order of the polynomial used for smoothing.
+        upsample_factor (float): The factor by which to upsample the contour data.
+        upsampling_kind (str): The kind of interpolation used for upsampling. Default is 'quadratic'.
+
+    Returns:
+        None
+    """
+    # Load the DICOM file
+    ds = pydicom.dcmread(dicom_file_path)
+
+    # Get the ROI Contour Sequence
+    roi_contour_sequence = ds.ROIContourSequence
+
+    # Iterate over each ROI Contour Sequence item
+    for roi_contour in roi_contour_sequence:
+        # Get the Contour Sequence
+        contour_sequence = roi_contour.ContourSequence
+
+        # Iterate over each Contour Sequence item
+        for contour_index, contour in enumerate(contour_sequence):
+            # Get the contour data
+            contour_data = contour.ContourData
+
+            # Smooth and upsample the contour data
+            smoothed_and_upsampled_contour_data = smooth_and_upsample_contours([contour_data], window_length, polyorder, upsample_factor, kind=upsampling_kind)
+
+            # Update the contour data
+            contour.ContourData = smoothed_and_upsampled_contour_data[0]
+
+            # Update the number of contour points
+            contour.NumberOfContourPoints = len(smoothed_and_upsampled_contour_data[0]) // 3
+
+    # Save the modified DICOM file
+    ds.save_as(dicom_file_path)
+
+def read_dicom_stack(directory):
+    """
+    Read DICOM files from the specified directory and return a list of DICOM objects.
+
+    Args:
+        directory (str): The path to the directory containing the DICOM files.
+
+    Returns:
+        list: A list of pydicom objects representing the DICOM files in the directory.
+    """
+    dicom_stack = []
+    for filename in os.listdir(directory):
+        filepath = os.path.join(directory, filename)
+        if os.path.isfile(filepath) and filename.lower().endswith('.dcm'):
+            dicom_stack.append(pydicom.dcmread(filepath))
+    return dicom_stack
