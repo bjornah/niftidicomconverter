@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="niftidicomconverter",
-    version="1.6.2",
+    version="1.6.3",
     author="Björn Ahlgren",
     author_email="bjorn.victor.ahlgren@gmail.com",
     description="A package for easy conversion between nifti and dicom file formats for medical imaging tasks",

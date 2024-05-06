@@ -18,7 +18,9 @@ def nifti_rtss_to_dicom_rtss(
     inference_threshold: float=0.5, 
     new_spacing: Union[tuple, str]='original',
     dicom_list: Optional[List]=None,
-    clustering_threshold: Optional[int]=None
+    clustering_threshold: Optional[int]=None,
+    roi_colors: Optional[List]=None,
+    color_base: Optional[List]=[100, 150, 0]
     ):
     """
     Convert a NIfTI binary mask to a DICOM RT Structure Set (RTSS) file.
@@ -92,9 +94,21 @@ def nifti_rtss_to_dicom_rtss(
         mask = np.ma.make_mask(ROI)
         if mask.sum()<10:
             small_clusters+1
+        if clustering_threshold:
+            if mask.sum()<clustering_threshold:
+                print(f'Cluster {idx} has fewer than {clustering_threshold} voxels, excluding it.')
+                continue
+
+        if roi_colors is None:
+            colour = [color_base[0], color_base[1], int(255/n_target*idx)]
+        elif isinstance(roi_colors[0], list):
+            colour = roi_colors[idx-1]
+        else:
+            colour = roi_colors
+
         rtstruct.add_roi(
             mask=mask, 
-            color=[100, 150, int(255/n_target*idx)], 
+            color=colour, 
             name=f"MET nr {idx}"
             )
     # logging.debug(f'There are currently {small_clusters} clusters with fewer than 10 pixels.')
@@ -123,7 +137,7 @@ def rescale_image_to_dicom(image: np.ndarray, dicom_file: str, orig_spacing = np
     dicom = pydicom.dcmread(dicom_file)
 
     # Get the pixel spacing and slice thickness from the DICOM file
-    dicom_spacing = np.array([dicom.SliceThickness] + list(dicom.PixelSpacing), dtype=np.float32)
+    dicom_spacing = np.array(list(dicom.PixelSpacing) + [dicom.SliceThickness], dtype=np.float32) # want order x,y,z since this is the order of axes in the nifti file. I think.
 
     # Calculate the zoom factor
     zoom_factor = dicom_spacing / orig_spacing
