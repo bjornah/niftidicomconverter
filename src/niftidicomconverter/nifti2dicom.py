@@ -138,7 +138,7 @@ def rescale_image_to_dicom(image: np.ndarray, dicom_file: str, orig_spacing = np
 
     return rescaled_image
 
-def prob_map_to_dicom_rtss(pred, dicom_folder, output_file, detection_threshold=0.5, binarization_threshold=0.5, roi_colors=None, color_base=[100, 150, 0]):
+def prob_map_to_dicom_rtss(pred, dicom_folder, output_file, detection_threshold=0.5, binarization_threshold=0.5, roi_colors=None, color_base=[100, 150, 0], clustering_threshold=None):
     """
     Converts a probability map to a DICOM RT Structure Set (RTSS).
 
@@ -164,6 +164,9 @@ def prob_map_to_dicom_rtss(pred, dicom_folder, output_file, detection_threshold=
     color_base (list or tuple, optional): The base color to use for the ROIs,
                                             specified as [R, G, B], if roi_colors is None.
                                             Defaults to [100, 150, 0].
+    clustering_threshold (int, optional): The minimum number of voxels required to keep ROIs
+                                            in the RTSS. If an ROI has fewer voxels than this
+                                            threshold, it will be removed. Defaults to None.
 
     Returns:
     None
@@ -194,6 +197,10 @@ def prob_map_to_dicom_rtss(pred, dicom_folder, output_file, detection_threshold=
         mask = np.ma.make_mask(ROI)
         if mask.sum()<10:
             small_clusters+1
+        if clustering_threshold:
+            if mask.sum()<clustering_threshold:
+                print(f'Cluster {idx} has fewer than {clustering_threshold} voxels, excluding it.')
+                continue
 
         if roi_colors is None:
             colour = [color_base[0], color_base[1], int(255/n_target*idx)]
