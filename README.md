@@ -20,3 +20,6 @@ Package to perform conversions between dicom and nifti file formats for medical 
 ## install package
 `pip install git+https://github.com/bjornah/niftidicomconverter.git`
 This will get you the latest built version of the package.
+
+## development
+Use conda environment `autoseglocal`.

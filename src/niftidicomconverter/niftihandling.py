@@ -97,7 +97,14 @@ def reorient_nifti(input_data: Union[str, nib.Nifti1Image], target_orientation: 
     ornt_transformation = nib.orientations.ornt_transform(old_ornt, target_ornt)
 
     # Apply the transformation
-    reoriented_data = nib.orientations.apply_orientation(nifti_img.get_fdata(), ornt_transformation)
+    # reoriented_data = nib.orientations.apply_orientation(nifti_img.get_fdata(), ornt_transformation)
+    data = nifti_img.get_fdata()
+    if data.ndim == 4:
+        reoriented_data = np.empty((data.shape[0], data.shape[1], data.shape[2], data.shape[3]))
+        for i in range(data.shape[3]):
+            reoriented_data[:,:,:,i] = nib.orientations.apply_orientation(data[:,:,:,i], ornt_transformation)
+    else:
+        reoriented_data = nib.orientations.apply_orientation(data, ornt_transformation)
 
     # Calculate the inverse orientation affine
     inv_affine = nib.orientations.inv_ornt_aff(ornt_transformation, old_shape)
@@ -105,7 +112,15 @@ def reorient_nifti(input_data: Union[str, nib.Nifti1Image], target_orientation: 
     # Combine with the original affine
     new_affine = np.dot(old_affine, inv_affine)
 
-    reoriented_nifti = nib.Nifti1Image(reoriented_data, new_affine)
+    # Create a new header
+    new_header = nifti_img.header.copy()
+
+    # Update the dimensions in the header
+    new_header.set_data_shape(reoriented_data.shape)
+
+    reoriented_nifti = nib.Nifti1Image(reoriented_data, new_affine, header=new_header)
+
+    # reoriented_nifti = nib.Nifti1Image(reoriented_data, new_affine)
     # new_ornt = nib.orientations.io_orientation(reoriented_nifti.affine)
     # print(f'new ornt = {new_ornt}')
     if print_debug:

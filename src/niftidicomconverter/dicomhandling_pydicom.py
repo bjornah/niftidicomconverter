@@ -51,7 +51,7 @@ def check_dicom_array_consistency_pydicom(slices: List[pydicom.dataset.FileDatas
         return False
 
     # Check for consistent orientations
-    orientations = [(s.ImageOrientationPatient, s.SliceLocation) for s in slices]
+    orientations = [(*s.ImageOrientationPatient, s.SliceLocation) for s in slices]
     if len(set(orientations)) > 1:
         print("Inconsistent orientations.")
         return False
