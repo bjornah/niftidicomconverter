@@ -294,7 +294,13 @@ from typing import Dict, List, Optional
 from scipy.ndimage import binary_fill_holes
 from skimage.draw import polygon
 
-def dicom_rtss_to_nifti(rtss_path: str, reference_image_dir: str, output_path: str, 
+# def convert_dicom_rtss_to_nifti(
+#     dicom_folder: str,
+#     dicom_rtss_path: str,
+#     output_nifti_path: str,
+#     structure_map: dict
+
+def convert_dicom_rtss_to_nifti(dicom_folder: str, dicom_rtss_path: str, output_nifti_path: str, 
                   structure_map: Optional[Dict[int, List[str]]] = None) -> None:
     """Convert DICOM RTSS file to a NIfTI file with structures mapped to specific values.
 
@@ -308,14 +314,14 @@ def dicom_rtss_to_nifti(rtss_path: str, reference_image_dir: str, output_path: s
         Warning: If a structure is not found in the provided dictionary.
     """
     try:
-        rtss = pydicom.dcmread(rtss_path)
+        rtss = pydicom.dcmread(dicom_rtss_path)
     except Exception as e:
         print(f"Error reading RTSS file: {e}")
         return
 
     try:
         reader = sitk.ImageSeriesReader()
-        dicom_names = reader.GetGDCMSeriesFileNames(reference_image_dir)
+        dicom_names = reader.GetGDCMSeriesFileNames(dicom_folder)
         reader.SetFileNames(dicom_names)
         reference_image = reader.Execute()
     except Exception as e:
@@ -381,7 +387,7 @@ def dicom_rtss_to_nifti(rtss_path: str, reference_image_dir: str, output_path: s
 
     # Write the NIfTI file
     try:
-        sitk.WriteImage(nifti_image, output_path)
-        print(f"NIfTI file saved to {output_path}")
+        sitk.WriteImage(nifti_image, output_nifti_path)
+        print(f"NIfTI file saved to {output_nifti_path}")
     except Exception as e:
         print(f"Error writing NIfTI file: {e}")
