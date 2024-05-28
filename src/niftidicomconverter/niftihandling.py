@@ -5,6 +5,8 @@ import numpy as np
 from scipy.ndimage import zoom
 from scipy.ndimage import label, generate_binary_structure
 
+from niftidicomconverter.dicomhandling import itk_resample_volume
+
 def read_nifti_file_sitk(file_path: str) -> sitk.Image:
     """
     Reads a NIfTI file using SimpleITK and returns it as a SimpleITK image object.
@@ -203,10 +205,31 @@ def resample_nifti_to_new_spacing(nifti_file_path: str, new_spacing: Tuple[float
         print(f"Original affine matrix: {original_affine}")
         print(f"New affine matrix: {new_affine}")
 
-
-
-
     return resampled_nifti_img
+
+def resample_nifti_to_new_spacing_sitk(nifti_file_path: str, new_spacing: Tuple[float, float, float], save_path: str = None) -> nib.Nifti1Image:
+    """
+    Resample a NIfTI image (3D or 4D) to the specified spacing for the first three dimensions, preserving the fourth dimension.
+
+    Args:
+        nifti_file_path: The file path to the input NIfTI image.
+        new_spacing: A tuple of three floats representing the new spacing (x, y, z).
+        save_path: Optional. If provided, the resampled NIfTI image will be saved to this path.
+
+    Returns:
+        The resampled NIfTI image as a nibabel Nifti1Image object.
+
+    Note:
+        This function does not interpolate across the fourth dimension if present.
+    """
+    # Load the NIfTI file as a SimpleITK image
+    nifti_img = read_nifti_file_sitk(nifti_file_path)
+    resampled_img = itk_resample_volume(nifti_img, new_spacing)
+    
+    # save results to disk
+    if save_path:
+        sitk.WriteImage(resampled_img, save_path)
+
 
 def detection_and_segmentation_binarization_2D(prob_map: np.ndarray, detection_threshold: float, binarization_threshold: float) -> np.ndarray:
     """
