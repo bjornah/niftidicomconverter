@@ -1,6 +1,6 @@
 import SimpleITK as sitk
 import nibabel as nib
-from typing import Union
+from typing import Union, Tuple
 import numpy as np
 from scipy.ndimage import zoom
 from scipy.ndimage import label, generate_binary_structure
@@ -149,7 +149,7 @@ def resample_3d_volume(data, scale_factors, order=2):
     """
     return zoom(data, scale_factors, order=order)
 
-def resample_nifti_to_new_spacing(nifti_file_path: str, new_spacing: tuple[float, float, float], interpolation_order: int=3, save_path: str = None) -> nib.Nifti1Image:
+def resample_nifti_to_new_spacing(nifti_file_path: str, new_spacing: Tuple[float, float, float], interpolation_order: int=3, save_path: str = None, debug: bool = False) -> nib.Nifti1Image:
     """
     Resample a NIfTI image (3D or 4D) to the specified spacing for the first three dimensions, preserving the fourth dimension.
 
@@ -157,6 +157,7 @@ def resample_nifti_to_new_spacing(nifti_file_path: str, new_spacing: tuple[float
         nifti_file_path: The file path to the input NIfTI image.
         new_spacing: A tuple of three floats representing the new spacing (x, y, z).
         save_path: Optional. If provided, the resampled NIfTI image will be saved to this path.
+        debug: Optional. If True, print debug information.
 
     Returns:
         The resampled NIfTI image as a nibabel Nifti1Image object.
@@ -183,7 +184,7 @@ def resample_nifti_to_new_spacing(nifti_file_path: str, new_spacing: tuple[float
 
     # Construct the new affine matrix
     new_affine = original_affine.copy()
-    np.fill_diagonal(new_affine, np.append(new_spacing, [1]))
+    np.fill_diagonal(new_affine, np.append(new_spacing, [1]) * np.sign(np.diag(original_affine)))
     new_affine[:3, 3] = original_affine[:3, 3] * scale_factors  # Adjust translation part
 
     # Create a new NIfTI image with the resampled data and new affine
@@ -195,6 +196,15 @@ def resample_nifti_to_new_spacing(nifti_file_path: str, new_spacing: tuple[float
     # Save the resampled image if a save path is provided
     if save_path:
         nib.save(resampled_nifti_img, save_path)
+
+    if debug:
+        print(f"Resampled NIfTI image from {original_spacing} to {new_spacing}.")
+        print(f"Scale factors: {scale_factors}")
+        print(f"Original affine matrix: {original_affine}")
+        print(f"New affine matrix: {new_affine}")
+
+
+
 
     return resampled_nifti_img
 
