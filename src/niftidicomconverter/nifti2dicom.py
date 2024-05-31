@@ -152,85 +152,90 @@ def rescale_image_to_dicom(image: np.ndarray, dicom_file: str, orig_spacing = np
 
     return rescaled_image
 
-def prob_map_to_dicom_rtss(pred, dicom_folder, output_file, detection_threshold=0.5, binarization_threshold=0.5, roi_colors=None, color_base=[100, 150, 0], clustering_threshold=None):
-    """
-    Converts a probability map to a DICOM RT Structure Set (RTSS).
 
-    This function takes a probability map (either as a numpy array or a NIfTI file), 
-    rescales it to match the dimensions of a DICOM series, binarizes it using the provided 
-    thresholds, clusters the binarized map into separate regions of interest (ROIs), and 
-    adds each ROI to a new RTSS. The RTSS is then saved to a file.
+############## The following function does not work and I do not know why ##############
+############## All contours end up in the wrong place with this function  ##############
+############## and it is not the transposition that is the problem.       ##############
 
-    Parameters:
-    pred (np.ndarray or str): The probability map to convert. Can be a numpy array or 
-                              the path to a NIfTI file.
-    dicom_folder (str): The path to the folder containing the DICOM series that the 
-                        probability map should be rescaled to match.
-    output_file (str): The path where the RTSS should be saved.
-    detection_threshold (float, optional): The threshold for detection in the binarization 
-                                           process. Defaults to 0.5.
-    binarization_threshold (float, optional): The threshold for binarization in the 
-                                              binarization process. Defaults to 0.5.
-    roi_colors (list or tuple, optional): The colors to use for the ROIs. Specified as
-                                            a list of [R, G, B] values for each ROI.
-                                            If None, the default color base is used.
-                                            Defaults to None.
-    color_base (list or tuple, optional): The base color to use for the ROIs,
-                                            specified as [R, G, B], if roi_colors is None.
-                                            Defaults to [100, 150, 0].
-    clustering_threshold (int, optional): The minimum number of voxels required to keep ROIs
-                                            in the RTSS. If an ROI has fewer voxels than this
-                                            threshold, it will be removed. Defaults to None.
+# def prob_map_to_dicom_rtss(pred, dicom_folder, output_file, detection_threshold=0.5, binarization_threshold=0.5, roi_colors=None, color_base=[100, 150, 0], clustering_threshold=None):
+#     """
+#     Converts a probability map to a DICOM RT Structure Set (RTSS).
 
-    Returns:
-    None
-    """
-    if not isinstance(pred, np.ndarray):
-        pred = nib.load(pred).get_fdata()
+#     This function takes a probability map (either as a numpy array or a NIfTI file), 
+#     rescales it to match the dimensions of a DICOM series, binarizes it using the provided 
+#     thresholds, clusters the binarized map into separate regions of interest (ROIs), and 
+#     adds each ROI to a new RTSS. The RTSS is then saved to a file.
 
-    dicom_list = glob.glob(dicom_folder+'/*dcm')
+#     Parameters:
+#     pred (np.ndarray or str): The probability map to convert. Can be a numpy array or 
+#                               the path to a NIfTI file.
+#     dicom_folder (str): The path to the folder containing the DICOM series that the 
+#                         probability map should be rescaled to match.
+#     output_file (str): The path where the RTSS should be saved.
+#     detection_threshold (float, optional): The threshold for detection in the binarization 
+#                                            process. Defaults to 0.5.
+#     binarization_threshold (float, optional): The threshold for binarization in the 
+#                                               binarization process. Defaults to 0.5.
+#     roi_colors (list or tuple, optional): The colors to use for the ROIs. Specified as
+#                                             a list of [R, G, B] values for each ROI.
+#                                             If None, the default color base is used.
+#                                             Defaults to None.
+#     color_base (list or tuple, optional): The base color to use for the ROIs,
+#                                             specified as [R, G, B], if roi_colors is None.
+#                                             Defaults to [100, 150, 0].
+#     clustering_threshold (int, optional): The minimum number of voxels required to keep ROIs
+#                                             in the RTSS. If an ROI has fewer voxels than this
+#                                             threshold, it will be removed. Defaults to None.
 
-    # Create new RT Struct. Requires the DICOM series path for the RT Struct.
-    rtstruct = RTStructBuilder.create_new(dicom_series_path=dicom_folder)
+#     Returns:
+#     None
+#     """
+#     if not isinstance(pred, np.ndarray):
+#         pred = nib.load(pred).get_fdata()
 
-    # rescale pred to the same dimensions as the dicom images
-    pred = rescale_image_to_dicom(pred, dicom_list[0])
+#     dicom_list = glob.glob(dicom_folder+'/*dcm')
 
-    # binarise the pred
-    pred = detection_and_segmentation_binarization_2D(prob_map = pred, detection_threshold = detection_threshold, binarization_threshold = binarization_threshold)
+#     # Create new RT Struct. Requires the DICOM series path for the RT Struct.
+#     rtstruct = RTStructBuilder.create_new(dicom_series_path=dicom_folder)
 
-    # cluster the binarised pred
-    labeled, n_target = label(pred, structure=generate_binary_structure(3, 3))
+#     # rescale pred to the same dimensions as the dicom images
+#     pred = rescale_image_to_dicom(pred, dicom_list[0])
 
-    labeled = np.swapaxes(labeled, 0, 1) # need this bullshit
+#     # binarise the pred
+#     pred = detection_and_segmentation_binarization_2D(prob_map = pred, detection_threshold = detection_threshold, binarization_threshold = binarization_threshold)
+
+#     # cluster the binarised pred
+#     labeled, n_target = label(pred, structure=generate_binary_structure(3, 3))
+
+#     labeled = np.swapaxes(labeled, 0, 1) # need this bullshit
 
 
-    small_clusters = 0
-    for idx in range(1,n_target+1): # 0 is background, so don't use that label as ROI
-        ROI = np.where(labeled==idx, 1, 0)
-        mask = np.ma.make_mask(ROI)
-        if mask.sum()<10:
-            small_clusters+1
-        if clustering_threshold:
-            if mask.sum()<clustering_threshold:
-                print(f'Cluster {idx} has fewer than {clustering_threshold} voxels, excluding it.')
-                continue
+#     small_clusters = 0
+#     for idx in range(1,n_target+1): # 0 is background, so don't use that label as ROI
+#         ROI = np.where(labeled==idx, 1, 0)
+#         mask = np.ma.make_mask(ROI)
+#         if mask.sum()<10:
+#             small_clusters+1
+#         if clustering_threshold:
+#             if mask.sum()<clustering_threshold:
+#                 print(f'Cluster {idx} has fewer than {clustering_threshold} voxels, excluding it.')
+#                 continue
 
-        if roi_colors is None:
-            colour = [color_base[0], color_base[1], int(255/n_target*idx)]
-        elif isinstance(roi_colors[0], list):
-            colour = roi_colors[idx-1]
-        else:
-            colour = roi_colors
+#         if roi_colors is None:
+#             colour = [color_base[0], color_base[1], int(255/n_target*idx)]
+#         elif isinstance(roi_colors[0], list):
+#             colour = roi_colors[idx-1]
+#         else:
+#             colour = roi_colors
 
-        rtstruct.add_roi(
-            mask=mask, 
-            color=colour, 
-            name=f"MET nr {idx}"
-            )
-    print(f'found {idx} structures')
+#         rtstruct.add_roi(
+#             mask=mask, 
+#             color=colour, 
+#             name=f"MET nr {idx}"
+#             )
+#     print(f'found {idx} structures')
         
-    rtstruct.save(output_file)
+#     rtstruct.save(output_file)
 
 # def copy_nifti_header(src: nib.Nifti1Image, dst: nib.Nifti1Image) -> nib.Nifti1Image:
 #     """Copy header from src to dst while perserving the dst data."""
