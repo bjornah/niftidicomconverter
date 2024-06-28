@@ -5,6 +5,8 @@ import numpy as np
 from scipy.ndimage import zoom
 from scipy.ndimage import label, generate_binary_structure
 
+import logging
+
 from niftidicomconverter.dicomhandling import itk_resample_volume
 
 def read_nifti_file_sitk(file_path: str) -> sitk.Image:
@@ -126,14 +128,14 @@ def reorient_nifti(input_data: Union[str, nib.Nifti1Image], target_orientation: 
     # new_ornt = nib.orientations.io_orientation(reoriented_nifti.affine)
     # print(f'new ornt = {new_ornt}')
     if print_debug:
-        print(f'old affine = {old_affine}')
-        print(f'old shape = {old_shape}')
-        print(f'old ornt = {old_ornt}')
-        print(f'old axcode = {old_axcode}')
-        print(f'target ornt = {target_ornt}')
-        print(f'ornt transformation = {ornt_transformation}')
-        print(f'new affine = {new_affine}')
-        print(f'new axcode = {nib.aff2axcodes(reoriented_nifti.affine)}')
+        logging.debug(f'old affine = {old_affine}')
+        logging.debug(f'old shape = {old_shape}')
+        logging.debug(f'old ornt = {old_ornt}')
+        logging.debug(f'old axcode = {old_axcode}')
+        logging.debug(f'target ornt = {target_ornt}')
+        logging.debug(f'ornt transformation = {ornt_transformation}')
+        logging.debug(f'new affine = {new_affine}')
+        logging.debug(f'new axcode = {nib.aff2axcodes(reoriented_nifti.affine)}')
 
     return reoriented_nifti
 
@@ -200,14 +202,19 @@ def resample_nifti_to_new_spacing(nifti_file_path: str, new_spacing: Tuple[float
         nib.save(resampled_nifti_img, save_path)
 
     if debug:
-        print(f"Resampled NIfTI image from {original_spacing} to {new_spacing}.")
-        print(f"Scale factors: {scale_factors}")
-        print(f"Original affine matrix: {original_affine}")
-        print(f"New affine matrix: {new_affine}")
+        logging.debug(f"Resampled NIfTI image from {original_spacing} to {new_spacing}.")
+        logging.debug(f"Scale factors: {scale_factors}")
+        logging.debug(f"Original affine matrix: {original_affine}")
+        logging.debug(f"New affine matrix: {new_affine}")
 
     return resampled_nifti_img
 
-def resample_nifti_to_new_spacing_sitk(nifti_file_path: str, new_spacing: Tuple[float, float, float], save_path: str = None) -> nib.Nifti1Image:
+def resample_nifti_to_new_spacing_sitk(
+        nifti_file_path: str,
+        new_spacing: Tuple[float, float, float],
+        save_path: str = None,
+        interpolator = sitk.sitkLinear
+    ) -> nib.Nifti1Image:
     """
     Resample a NIfTI image (3D or 4D) to the specified spacing for the first three dimensions, preserving the fourth dimension.
 
@@ -224,7 +231,12 @@ def resample_nifti_to_new_spacing_sitk(nifti_file_path: str, new_spacing: Tuple[
     """
     # Load the NIfTI file as a SimpleITK image
     nifti_img = read_nifti_file_sitk(nifti_file_path)
-    resampled_img = itk_resample_volume(nifti_img, new_spacing)
+    
+    pixel_id = nifti_img.GetPixelID()
+    pixel_id_type_string = sitk.GetPixelIDValueAsString(pixel_id)
+    logging.debug(f"Inside resample_nifti_to_new_spacing_sitk, current data type: {pixel_id_type_string}")
+    
+    resampled_img = itk_resample_volume(nifti_img, new_spacing, interpolator=interpolator)
     
     # save results to disk
     if save_path:
@@ -279,12 +291,13 @@ def detection_and_segmentation_binarization_2D(prob_map: np.ndarray, detection_t
 
 
     except Exception as e:
-        print(f"Error processing the binarization: {str(e)}")
-        print(f"prob_map.shape: {prob_map.shape}")
-        print(f"detection_threshold: {detection_threshold}")
-        print(f"binarization_threshold: {binarization_threshold}")
-        print(f'prob_map.min(): {prob_map.min()}')
-        print(f'prob_map.max(): {prob_map.max()}')
+        logging.exception(f"Error processing the binarization: {str(e)}")
+        logging.exception(f"prob_map.shape: {prob_map.shape}")
+        logging.exception(f"detection_threshold: {detection_threshold}")
+        logging.exception(f"binarization_threshold: {binarization_threshold}")
+        logging.exception(f'prob_map.min(): {prob_map.min()}')
+        logging.exception(f'prob_map.max(): {prob_map.max()}')
+        logging.exception(e)
         return prob_map
 
 # def resample_nifti_rtss(

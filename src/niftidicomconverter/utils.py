@@ -10,8 +10,46 @@ from typing import Tuple
 from rt_utils import RTStruct
 from typing import Optional, Union, List
 from shutil import copyfile
+import shutil
+import pydicom
+
+import re
 
 from niftidicomconverter.dicomhandling import itk_resample_volume
+
+def check_dtype_sitk(fpath):
+    image_sitk = sitk.ReadImage(fpath)
+    pixel_id = image_sitk.GetPixelID()
+    pixel_id_type_string = sitk.GetPixelIDValueAsString(pixel_id)
+    print(f"Current data type: {pixel_id_type_string}")
+
+def correct_nifti_header(src, dst):
+    """
+    Corrects the header of a dst NIfTI file using another NIfTI src file as a reference.
+    Additionally, preserves the data type of the dst NIfTI file.
+
+    Parameters:
+    src (str): The path to the source NIfTI file.
+    dst (str): The path to the destination NIfTI file.
+
+    Returns:
+    Nifti1Image: The corrected NIfTI image with the header updated and data type preserved.
+    """
+    src_nifti = nib.load(src)
+    dst_nifti = nib.load(dst)
+    
+    data = dst_nifti.get_fdata()
+    dtype = dst_nifti.get_data_dtype()
+    affine = src_nifti.affine
+    header = src_nifti.header
+    header.set_data_dtype(dtype)
+    
+    corrected_image = nib.nifti1.Nifti1Image(data.astype(dtype), affine=affine, header=header)
+    
+    # print(f'dtype = {dtype}')
+    # print(f'corrected_image.get_data_dtype() = {corrected_image.get_data_dtype()}')
+    
+    return corrected_image
 
 def axes_swapping(array: np.array):
     """
@@ -97,33 +135,45 @@ def get_binary_rtss(nifti_pred: str, inference_threshold: float, new_spacing: tu
 
     return rtss_binary
 
-def copy_file_safely(tmp_dir: str, src: str, dst_naming: str) -> str:
+def copy_file_safely(file_path, target_dir):
     """
-    Copy a file from the source path to a destination directory, ensuring the destination filename is unique.
-    This makes sure you do not overwrite another file.
+    Copy a file safely to a target directory.
 
     Args:
-        tmp_dir (str): The path to the temporary directory where the file will be copied.
-        src (str): The path to the source file to be copied.
-        dst_naming (str): The desired filename for the copied file.
+        file_path (str): The path of the file to be copied.
+        target_dir (str): The target directory where the file will be copied to.
 
     Returns:
-        str: The path to the copied file, including the unique filename suffix if necessary.
+        None
+
+    Raises:
+        None
     """
-    
-    dst = None
+    # Ensure the target directory exists
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
 
-    try:
-        dst = os.path.join(tmp_dir, dst_naming)
+    if os.path.isfile(file_path):
+        file_name = os.path.basename(file_path)
+        target_file_path = os.path.join(target_dir, file_name)
 
-        if os.path.isfile(dst):
-            dst = dst + time.strftime("%H%M%S")
-        copyfile(src, dst)
+        # Handle file name conflicts
+        counter = 1
+        while os.path.exists(target_file_path):
+            name, extension = os.path.splitext(file_name)
+            new_file_name = f"{name}_{counter}{extension}"
+            target_file_path = os.path.join(target_dir, new_file_name)
+            counter += 1
 
-    except Exception as e:
-        print(e)
-
-    return dst
+        # Copy the file
+        try:
+            shutil.copy2(file_path, target_file_path)
+            logging.debug(f"Copied {file_path} to {target_file_path}")
+        except Exception as e:
+            logging.exception(f"Error copying {file_path} to {target_file_path}: {e}")           
+        
+    else:
+        logging.info(f"Skipping non-existent file: {file_path}")
 
 
 def get_array_from_itk_image(image: sitk.Image) -> np.ndarray:
@@ -138,10 +188,6 @@ def get_array_from_itk_image(image: sitk.Image) -> np.ndarray:
     """
     return sitk.GetArrayFromImage(image)
 
-def copy_nifti_header(src: nib.Nifti1Image, dst: nib.Nifti1Image) -> nib.Nifti1Image:
-    """Copy header from src to dst while perserving the dst data."""
-    data = dst.get_fdata()
-    return nib.nifti1.Nifti1Image(data, None, header=src.header)
 
 def calculate_new_affine(old_affine, old_spacing, new_spacing, dimensions):
     """
@@ -161,6 +207,33 @@ def calculate_new_affine(old_affine, old_spacing, new_spacing, dimensions):
         scale = old_spacing[dim] / new_spacing[dim]
         new_affine[dim, :3] *= scale
     return new_affine
+
+def generate_dicom_filename(dicom_file_path):
+    """
+    Generates a filename from a DICOM file by concatenating the PatientID and SeriesInstanceUID,
+    separated by an underscore, and removing any special characters.
+
+    Parameters:
+    - dicom_file_path (str): The path to the DICOM file.
+
+    Returns:
+    - str: A sanitized string suitable for use as a filename.
+    """
+    try:
+        dicom_data = pydicom.dcmread(dicom_file_path)
+        patient_id = getattr(dicom_data, 'PatientID', 'UnknownPatient')
+        series_instance_uid = getattr(dicom_data, 'SeriesInstanceUID', 'UnknownSeries')
+
+        # Concatenate with an underscore
+        filename = f"{patient_id}_{series_instance_uid}"
+
+        # Remove special characters
+        sanitized_filename = re.sub(r'[^a-zA-Z0-9_]', '', filename)
+
+        return sanitized_filename
+    except Exception as e:
+        logging.exception(f"Error processing DICOM file: {e}")
+        return None
 
 # def itk_resample_volume(
 #     img: sitk.Image, 

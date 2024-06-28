@@ -1,4 +1,5 @@
 import os
+import logging 
 
 import numpy as np
 import SimpleITK as sitk
@@ -33,30 +34,30 @@ def check_dicom_array_consistency_pydicom(slices: List[pydicom.dataset.FileDatas
     """
 
     if not (hasattr(slices[0], 'SliceThickness') | hasattr(slices[0], 'ImageOrientationPatient') | hasattr(slices[0], 'SliceLocation')):
-        print("The relevant attributes for which to check consistency are missing from the file")
+        logging.warning("The relevant attributes for which to check consistency are missing from the file")
         return True
 
     # Check for missing slices
     num_slices = len(slices)
     num_images = slices[-1].InstanceNumber - slices[0].InstanceNumber + 1
     if num_slices != num_images:
-        print(f"Missing slices: expected {num_images}, got {num_slices}.")
+        logging.warning(f"Missing slices: expected {num_images}, got {num_slices}.")
         return False
 
     # Check for consistent slice thickness
     
     slice_thicknesses = [s.SliceThickness for s in slices]
     if len(set(slice_thicknesses)) > 1:
-        print("Inconsistent slice thickness.")
+        logging.warning("Inconsistent slice thickness.")
         return False
 
     # Check for consistent orientations
     orientations = [(*s.ImageOrientationPatient, s.SliceLocation) for s in slices]
     if len(set(orientations)) > 1:
-        print("Inconsistent orientations.")
+        logging.warning("Inconsistent orientations.")
         return False
 
-    print("DICOM slices are consistent.")
+    logging.warning("DICOM slices are consistent.")
     return True
 
 def resample_volume_pydicom(image: np.ndarray, spacing: np.ndarray, new_spacing: Tuple[float, float, float], order: int = 3) -> Tuple[np.ndarray, np.ndarray]:
@@ -214,12 +215,12 @@ def load_dicom_images_pydicom(paths: Union[str, List[str]], new_spacing: Optiona
     if ((len(set(spacing)) > 1) or (not check_dicom_array_consistency_pydicom(slices))) and (new_spacing is None):
         # new_spacing = [(1,1,1) for _ in slices]
         new_spacing = (1,1,1)
-        print('resampling image due to inconsistent slice thicknesses in original image')
-        print('setting new spacing to (1,1,1) mm')
+        logging.warning('resampling image due to inconsistent slice thicknesses in original image')
+        logging.warning('setting new spacing to (1,1,1) mm')
     
     # Resample voxel spacing
     if new_spacing is not None:
-        print(f'resampling image to resolution {new_spacing} mm')
+        logging.info(f'resampling image to resolution {new_spacing} mm')
         if len(set(spacing)) == 1:
             spacing = tuple([float(s) for s in list(set(spacing))[0]])
         else:
@@ -235,7 +236,7 @@ def load_dicom_images_pydicom(paths: Union[str, List[str]], new_spacing: Optiona
     
     if not check_dicom_array_consistency_pydicom(slices):
         # raise RuntimeError("Error in dicom file(s)!")
-        print(f'note error in dicom file(s)\n{paths}')
+        logging.error(f'note error in dicom file(s)\n{paths}')
 
     # Transpose axes if necessary
     if permute_axes is not None:
@@ -267,15 +268,15 @@ def save_pydicom_to_nifti_nib(dicom_data: pydicom.dataset.FileDataset, nifti_fil
             try:
                 affine = calculate_affine_from_pydicom(dicom_data)
             except:
-                print('cannot calculate affine from dicom, set it to identity matrix')
+                logging.warning('cannot calculate affine from dicom, set it to identity matrix')
                 affine = np.ones((4,4))
         nifti_data = nib.nifti1.Nifti1Image(dicom_data.pixel_array, affine)
         nib.save(nifti_data, nifti_file_path)
-        print(f"Conversion successful. NIfTI file saved at {nifti_file_path}")
+        logging.info(f"Conversion successful. NIfTI file saved at {nifti_file_path}")
         return True
     except Exception as e:
         error_message = f"Error converting DICOM to NIfTI: {str(e)}"
-        print(error_message)
+        logging.exception(error_message)
         return False
     
 def calculate_affine_from_pydicom(dicom_image: pydicom.dataset.FileDataset) -> np.ndarray:
@@ -348,7 +349,7 @@ def smooth_and_upsample_contours(contours, window_length, polyorder, upsample_fa
     
 
     for i, contour in enumerate(contours):
-        print(f"Smoothing and upsampling {len(contour)} contours...")
+        logging.info(f"Smoothing and upsampling {len(contour)} contours...")
         # Reshape the contour data
         contour = np.reshape(contour, (-1, 3))
 
@@ -375,7 +376,7 @@ def smooth_and_upsample_contours(contours, window_length, polyorder, upsample_fa
         # Check if the contour is too small
         if upsampled_contour.shape[0] < window_length:
             # If so, notify the user and skip the smoothing operation
-            print(f"Contour {i} has fewer points ({upsampled_contour.shape[0]}) than the window length ({window_length}). Skipping smoothing.")
+            logging.warning(f"Contour {i} has fewer points ({upsampled_contour.shape[0]}) than the window length ({window_length}). Skipping smoothing.")
             smoothed_and_upsampled_contours.append(upsampled_contour.flatten().tolist())
             continue
 
@@ -387,7 +388,7 @@ def smooth_and_upsample_contours(contours, window_length, polyorder, upsample_fa
         upsampled_contour = upsampled_contour.flatten().tolist()
 
         smoothed_and_upsampled_contours.append(upsampled_contour)
-        print(f'len(smoothed_contour) = {len(upsampled_contour)}')
+        logging.info(f'len(smoothed_contour) = {len(upsampled_contour)}')
         
     return smoothed_and_upsampled_contours
 

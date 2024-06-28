@@ -3,6 +3,7 @@ import numpy as np
 from rt_utils import RTStructBuilder
 import tempfile
 import glob
+import logging
 from typing import Optional, Union, List
 import pydicom
 import nibabel as nib
@@ -74,10 +75,15 @@ def nifti_rtss_to_dicom_rtss(
         with tempfile.TemporaryDirectory() as tmp_dir:
             for dicom in dicom_list:
                 copy_file_safely(
-                    tmp_dir=tmp_dir,
-                    src=dicom,
-                    dst_naming=dicom.split('/')[-1],
+                    file_path=dicom,
+                    target_dir=tmp_dir
                 )
+                
+                # copy_file_safely(
+                #     tmp_dir=tmp_dir,
+                #     src=dicom,
+                #     dst_naming=dicom.split('/')[-1],
+                # )
 
             rtstruct = RTStructBuilder.create_new(
                             dicom_series_path=tmp_dir,
@@ -96,7 +102,7 @@ def nifti_rtss_to_dicom_rtss(
             small_clusters+1
         if clustering_threshold:
             if mask.sum()<clustering_threshold:
-                print(f'Cluster {idx} has fewer than {clustering_threshold} voxels, excluding it.')
+                logging.info(f'Cluster {idx} has fewer than {clustering_threshold} voxels, excluding it.')
                 continue
 
         if roi_colors is None:
@@ -144,7 +150,7 @@ def rescale_image_to_dicom(image: np.ndarray, dicom_file: str, orig_spacing = np
 
     # If the zoom factor is 1 in all dimensions, return the original image
     if np.allclose(zoom_factor, 1):
-        print(f'No rescaling needed, zoom factor: {zoom_factor}. Returning original image.')
+        logging.info(f'No rescaling needed, zoom factor: {zoom_factor}. Returning original image.')
         return image
     
     # Rescale the image

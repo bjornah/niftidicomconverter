@@ -9,6 +9,47 @@ from niftidicomconverter.dicomhandling import load_dicom_images
 from niftidicomconverter.dicomhandling_pydicom import load_dicom_images_pydicom
 from niftidicomconverter.niftihandling import read_nifti_file_sitk, read_nifti_file_nib
 
+from ipywidgets import interact, IntSlider
+
+
+def display_axial_slices_with_overlay(image_path, overlay_path=None, overlay_color=(1, 0, 0, 0.5)):
+    """
+    Display axial slices of a 3D image with an optional colored overlay using a slider.
+    
+    Parameters:
+    - image_path: Path to the 3D image file.
+    - overlay_path: Path to the 3D overlay image file (optional).
+    - overlay_color: RGBA color for the overlay (optional, default is red with 50% opacity).
+    """
+    # Load the image
+    image = nib.load(image_path).get_fdata()
+    
+    # Load the overlay if provided and convert to RGBA
+    if overlay_path:
+        overlay = nib.load(overlay_path).get_fdata()
+        # Ensure overlay is boolean for masking
+        overlay_mask = overlay > 0
+        # Initialize an empty RGBA array for the overlay
+        overlay_rgba = np.zeros((*overlay_mask.shape, 4))
+        # Apply the overlay color to the mask
+        for i in range(3):  # RGB channels
+            overlay_rgba[..., i] = overlay_mask * overlay_color[i]
+        overlay_rgba[..., 3] = overlay_mask * overlay_color[3]  # Alpha channel
+    else:
+        overlay_rgba = None
+    
+    # Define a function to plot a specific slice with optional colored overlay
+    def plot_slice(slice_index):
+        plt.figure(figsize=(6, 6))
+        plt.imshow(image[:, :, slice_index], cmap='gray')
+        if overlay_rgba is not None:
+            plt.imshow(overlay_rgba[:, :, slice_index, :], interpolation='nearest')
+        plt.axis('off')
+        plt.show()
+    
+    # Create a slider to select the slice index
+    interact(plot_slice, slice_index=IntSlider(min=0, max=image.shape[2] - 1, step=1, value=image.shape[2] // 2))
+
 def visualize_itk_slice(image: sitk.Image, slice_index: int) -> None:
     """
     Display a 2D slice of an ITK image using matplotlib.
@@ -201,3 +242,5 @@ def plot_nifti_matrix(nrows: int, ncols: int, nii_files: List[str], figsize=(10,
     for i, ax in enumerate(axes.ravel()):
         if i<len(nii_files):
             visualize_nifti_file(nii_files[i], ax=ax, loader=loader, **kwargs)
+            
+            

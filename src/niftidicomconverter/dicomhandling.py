@@ -7,10 +7,105 @@ import nibabel as nib
 import pydicom
 import tempfile
 import logging
+import glob
 
+from natsort import natsorted
 from typing import Tuple, Optional, List, Union
+from collections import defaultdict
 
 # from niftidicomconverter.utils import are_numbers_within_factor
+
+
+def pair_dicom_series(folder, desired_sop_class_uid="1.2.840.10008.5.1.4.1.1.4"):
+    """
+    Searches a folder recursively for DICOM files, categorizes them into images of a specified type or RTSS files
+    based on SOPClassUID, and groups them by SeriesInstanceUID into series. It uses FrameOfReferenceUID to associate
+    RTSS files with their corresponding image series.
+
+    Parameters:
+    - folder (str): The path to the folder containing DICOM files.
+    - desired_sop_class_uid (str): The SOPClassUID for the desired image type, default is for standard MR images.
+
+    Returns:
+    - list: A list of dictionaries, each representing a series with 'image' and 'rtss' keys.
+    """
+    dicom_files = glob.glob(os.path.join(folder, '**', '*.dcm'), recursive=True)
+    series = {}
+    frame_of_reference_mapping = {}
+
+    for file_path in dicom_files:
+        try:
+            ds = pydicom.dcmread(file_path, stop_before_pixels=True)
+            series_instance_uid = ds.SeriesInstanceUID #unique id for an image series
+            sop_class_uid = ds.SOPClassUID #the type of dicom file it is
+
+            if sop_class_uid == desired_sop_class_uid: # check if file is an image of correct modality 
+                if series_instance_uid not in series:
+                    series[series_instance_uid] = {'image': [], 'rtss': None}
+                    if 'FrameOfReferenceUID' in ds:
+                        frame_of_reference_mapping[series_instance_uid] = ds.FrameOfReferenceUID
+                    else:
+                        logging.warning(f'No FrameOfReferenceUID found for image file {file_path}')
+                series[series_instance_uid]['image'].append(file_path)
+                
+            elif sop_class_uid == "1.2.840.10008.5.1.4.1.1.481.3":  # SOP Class UID for RTSS
+                # For RTSS, find matching series by FrameOfReferenceUID
+                if 'FrameOfReferenceUID' in ds:
+                    frame_of_reference_uid = ds.FrameOfReferenceUID
+                    matching_series = [key for key, value in frame_of_reference_mapping.items() if value == frame_of_reference_uid]
+                else:
+                    logging.warning(f'No FrameOfReferenceUID found for RTSS file {file_path}')
+                if matching_series:
+                    series[matching_series[0]]['rtss'] = file_path
+        except Exception as e:
+            logging.exception(f"Error processing file {file_path}: {e}")
+
+    # Convert to list of dicts format and sort images
+    paired_series = [{'image': natsorted(v['image']), 'rtss': v['rtss']} for v in series.values()]
+
+    return paired_series
+
+def pair_dicom_series_v2(folder, desired_sop_class_uid="1.2.840.10008.5.1.4.1.1.4"):
+    # Initialize data structures
+    image_files = defaultdict(list)
+    rtss_files = {}
+    frame_to_series_mapping = defaultdict(set)
+
+    # Classify DICOM files
+    dicom_files = glob.glob(os.path.join(folder, '**', '*.dcm'), recursive=True)
+    for file_path in dicom_files:
+        try:
+            ds = pydicom.dcmread(file_path, stop_before_pixels=True)
+            if ds.SOPClassUID == desired_sop_class_uid:  # Image file
+                series_instance_uid = ds.SeriesInstanceUID
+                image_files[series_instance_uid].append(file_path)
+                if 'FrameOfReferenceUID' in ds:
+                    frame_to_series_mapping[ds.FrameOfReferenceUID].add(series_instance_uid)
+            elif ds.SOPClassUID == "1.2.840.10008.5.1.4.1.1.481.3":  # RTSS file
+                if 'FrameOfReferenceUID' in ds:
+                    rtss_files[ds.FrameOfReferenceUID] = file_path
+        except Exception as e:
+            logging.exception(f"Error processing file {file_path}: {e}")
+
+    # Associate RTSS files with image series
+    paired_series = []
+    for frame_of_reference_uid, rtss_path in rtss_files.items():
+        for series_instance_uid in frame_to_series_mapping.get(frame_of_reference_uid, []):
+            if series_instance_uid in image_files:
+                paired_series.append({
+                    'image': natsorted(image_files[series_instance_uid]),
+                    'rtss': rtss_path
+                })
+
+    # Include series without RTSS if needed
+    for series_instance_uid, image_paths in image_files.items():
+        if not any(series['image'] == natsorted(image_paths) for series in paired_series):
+            paired_series.append({
+                'image': natsorted(image_paths),
+                'rtss': None
+            })
+
+    return paired_series
 
 def are_numbers_approx_equal(numbers: list, rel_tol: float) -> bool:
     """
@@ -58,15 +153,15 @@ def check_itk_image(image: sitk.Image, spacing_tolerance=1e-5) -> bool:
         expected_index = list(original_size)
         expected_index[-1] = i
         if not image.TransformIndexToPhysicalPoint(expected_index):
-            print(f"Error: missing slice {i}.")
+            logging.error(f"Error: missing slice {i}.")
             return False
 
     # Check for non-uniform sampling across slices
     spacing = image.GetSpacing()
     if (len(spacing) != 3) and (len(set(spacing)) != 1): # this checks for non-uniform sampling by first checking if there is more than one spacing value (spacing values are 3-tuples) and then checking if all spacing values are the same (set(spacing) != 1), which they should not be if you got back more than one set of spacings
-        print(f"non-iniform spacing detected. Spacings = {spacing}")
+        logging.warning(f"non-iniform spacing detected. Spacings = {spacing}")
         spacing_array = np.array(spacing)
-        return check_approx_equal_dim1(spacing_array)
+        return check_approx_equal_dim1(spacing_array, 1e-6)
 
         # print(f"currently, there is no check for how large this discrepancy across slices is. This should be implemented, so that miniscule differences stemming from numerical noise can be disregarded.")
         # if are_numbers_approx_equal(spacing, spacing_tolerance):
@@ -84,13 +179,55 @@ def check_itk_image(image: sitk.Image, spacing_tolerance=1e-5) -> bool:
 
     return True
 
+# def itk_resample_volume(
+#     img: sitk.Image, 
+#     new_spacing: Tuple[float, float, float],
+#     interpolator = sitk.sitkLinear
+# ) -> sitk.Image:
+#     """
+#     Resample a SimpleITK image to a new spacing using the specified interpolator.
+
+#     Args:
+#         img: The input SimpleITK image to resample.
+#         new_spacing: The new spacing to resample the image to, as a tuple of (x, y, z) values.
+#         interpolator: The interpolation method to use when resampling the image. Default is sitk.sitkLinear.
+
+#     Returns:
+#         The resampled SimpleITK image.
+#     """
+#     # Compute the new size of the resampled image
+#     original_spacing = img.GetSpacing()
+#     original_size = img.GetSize()
+#     new_size = [int(round(osz * ospc / nspc)) for osz, ospc, nspc in zip(original_size, original_spacing, new_spacing)]
+    
+#     # Define the arguments for the sitk.Resample function
+#     resample_args = [
+#         img,                   # The input image
+#         new_size,              # The new size of the output image
+#         sitk.Transform(),      # The transform to apply during resampling (default is identity)
+#         interpolator,          # The interpolator to use during resampling (default is sitkLinear)
+#         img.GetOrigin(),       # The origin of the input image
+#         new_spacing,           # The new spacing to resample the image to
+#         img.GetDirection(),    # The direction of the input image
+#         0,                     # The default value to use for voxels outside the input image
+#         img.GetPixelID()       # The pixel ID value for the output image
+#     ]
+    
+#     # Resample the input image
+#     resampled_img = sitk.Resample(*resample_args)
+    
+#     return resampled_img
+
+
+
 def itk_resample_volume(
     img: sitk.Image, 
     new_spacing: Tuple[float, float, float],
-    interpolator = sitk.sitkLinear
+    interpolator=sitk.sitkLinear
 ) -> sitk.Image:
     """
     Resample a SimpleITK image to a new spacing using the specified interpolator.
+    Handles both 3D and 4D images (3D images with multiple channels).
 
     Args:
         img: The input SimpleITK image to resample.
@@ -100,26 +237,77 @@ def itk_resample_volume(
     Returns:
         The resampled SimpleITK image.
     """
-    # Compute the new size of the resampled image
-    original_spacing = img.GetSpacing()
+    logging.debug('Resampling nifti image using SimpleITK')
+    # Get the size of the input image
     original_size = img.GetSize()
-    new_size = [int(round(osz * ospc / nspc)) for osz, ospc, nspc in zip(original_size, original_spacing, new_spacing)]
+    logging.debug(f'Original image size: {original_size}')
     
-    # Define the arguments for the sitk.Resample function
-    resample_args = [
-        img,                   # The input image
-        new_size,              # The new size of the output image
-        sitk.Transform(),      # The transform to apply during resampling (default is identity)
-        interpolator,          # The interpolator to use during resampling (default is sitkLinear)
-        img.GetOrigin(),       # The origin of the input image
-        new_spacing,           # The new spacing to resample the image to
-        img.GetDirection(),    # The direction of the input image
-        0,                     # The default value to use for voxels outside the input image
-        img.GetPixelID()       # The pixel ID value for the output image
-    ]
+    # Check if the image is 3D or 4D
+    if len(original_size) == 3:
+        # Resample the 3D image
+        original_spacing = img.GetSpacing()
+        new_size = [int(round(osz * ospc / nspc)) for osz, ospc, nspc in zip(original_size, original_spacing, new_spacing)]
+        
+        # Define the arguments for the sitk.Resample function
+        resample_args = [
+            img,                   # The input image
+            new_size,              # The new size of the output image
+            sitk.Transform(),      # The transform to apply during resampling (default is identity)
+            interpolator,          # The interpolator to use during resampling (default is sitkLinear)
+            img.GetOrigin(),       # The origin of the input image
+            new_spacing,           # The new spacing to resample the image to
+            img.GetDirection(),    # The direction of the input image
+            0,                     # The default value to use for voxels outside the input image
+            img.GetPixelID()       # The pixel ID value for the output image
+        ]
+        
+        # Resample the input image
+        resampled_img = sitk.Resample(*resample_args)
+        
+    elif len(original_size) == 4:
+        # Get the number of channels
+        num_channels = original_size[3]
+        print(f"Number of channels in original image = {num_channels}")
+        
+        # Initialize a list to hold the resampled 3D images
+        resampled_slices = []
+        
+        for c in range(num_channels):
+            # Extract the 3D volume for the current channel
+            img_3d = img[:, :, :, c]
+            
+            # Compute the new size for the resampled 3D volume
+            original_spacing_3d = img_3d.GetSpacing()
+            original_size_3d = img_3d.GetSize()
+            new_size_3d = [int(round(osz * ospc / nspc)) for osz, ospc, nspc in zip(original_size_3d, original_spacing_3d, new_spacing)]
+            
+            logging.debug(f'Original size of 3D image (channel {c}): {original_size_3d}')
+            logging.debug(f'New size of 3D image (channel {c}): {new_size_3d}')
+            
+            # Define the arguments for the sitk.Resample function
+            resample_args = [
+                img_3d,                   # The input 3D image
+                new_size_3d,              # The new size of the output 3D image
+                sitk.Transform(),         # The transform to apply during resampling (default is identity)
+                interpolator,             # The interpolator to use during resampling (default is sitkLinear)
+                img_3d.GetOrigin(),       # The origin of the input image
+                new_spacing,              # The new spacing to resample the image to
+                img_3d.GetDirection(),    # The direction of the input image
+                0,                        # The default value to use for voxels outside the input image
+                img_3d.GetPixelID()       # The pixel ID value for the output image
+            ]
+            
+            # Resample the 3D image
+            resampled_img_3d = sitk.Resample(*resample_args)
+            
+            # Append the resampled 3D image to the list
+            resampled_slices.append(resampled_img_3d)
+        
+        # Stack the resampled 3D images to form a 4D image
+        resampled_img = sitk.JoinSeries(resampled_slices)
     
-    # Resample the input image
-    resampled_img = sitk.Resample(*resample_args)
+    else:
+        raise ValueError("Input image must be 3D or 4D.")
     
     return resampled_img
 
@@ -179,7 +367,7 @@ def convert_photometric_interpretation(image: sitk.Image, target_interpretation:
         raise ValueError(f"Unsupported target photometric interpretation '{target_interpretation}'")
 
     if current_interpretation != target_interpretation:
-        print(f"converting from '{current_interpretation}' to '{target_interpretation}'")
+        logging.info(f"converting from '{current_interpretation}' to '{target_interpretation}'")
         image_arr = sitk.GetArrayFromImage(image)
         inverted_arr = np.max(image_arr) - image_arr
         image = sitk.GetImageFromArray(inverted_arr)
@@ -260,7 +448,7 @@ def load_dicom_images(dicom_path: Union[str, List[str]], new_spacing: Optional[T
         image = convert_photometric_interpretation(image, photometric_interpretation)
     
     if new_spacing is not None:
-        print(f'resampling image to resolution {new_spacing} mm')
+        logging.info(f'resampling image to resolution {new_spacing} mm')
         image = itk_resample_volume(img=image, new_spacing=new_spacing)
     
     if not check_itk_image(image):
