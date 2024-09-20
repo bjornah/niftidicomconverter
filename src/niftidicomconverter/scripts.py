@@ -26,7 +26,6 @@ def batch_convert_dicom_to_nifti(base_path, output_base_dir, structure_map, new_
     """
     res_list = pair_dicom_series_v2(base_path)
     
-    output_base_dir = '/hdd/Data/Meningiom_Nifti'
     if not os.path.exists(output_base_dir):
         os.makedirs(output_base_dir)
     
