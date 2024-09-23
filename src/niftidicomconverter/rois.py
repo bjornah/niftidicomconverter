@@ -29,6 +29,7 @@ def fetch_mapped_rois(rtstruct: RTStruct, structure_map: dict) -> np.ndarray:
 
     masks = {}
     roi_names = rtstruct.get_roi_names()
+    logging.info(f'roi_names = {roi_names}')
 
     for roi_idx, roi_name in enumerate(roi_names):
 
@@ -37,6 +38,7 @@ def fetch_mapped_rois(rtstruct: RTStruct, structure_map: dict) -> np.ndarray:
             mask_idx = int(structure_idx)
 
             if roi_name.lower() not in (_.lower() for _ in structures):
+                logging.warning(f"Structure: {roi_name} not in structure map for index {structure_idx}")
                 continue
 
             logging.debug(f"\t-- Converting structure: {roi_name}")
@@ -45,7 +47,7 @@ def fetch_mapped_rois(rtstruct: RTStruct, structure_map: dict) -> np.ndarray:
                 mask = rtstruct.get_roi_mask_by_name(roi_name)
 
                 number_voxel = np.count_nonzero(mask)
-                logging.debug(f"\tCounted number of voxel: {number_voxel}")
+                logging.debug(f"\tCounted number of voxels: {number_voxel}")
 
                 if number_voxel == 0:
                     continue
@@ -56,9 +58,12 @@ def fetch_mapped_rois(rtstruct: RTStruct, structure_map: dict) -> np.ndarray:
                 masks[mask_idx] = mask
 
                 break
-
+            
+            except AttributeError as e:
+                logging.error(f"AttributeError processing ROI {roi_name}: {e}", exc_info=True)
+                break
             except Exception as e:
-                logging.error(e)
+                logging.error(f"Error processing ROI {roi_name}: {e}", exc_info=True)
                 break
 
     if len(masks) == 0:

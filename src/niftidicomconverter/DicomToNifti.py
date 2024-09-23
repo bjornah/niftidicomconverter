@@ -109,7 +109,7 @@ def convert_dicom_rtss_to_nifti(dicom_image_files, rtss, output_fname, structure
     rtss_mask = fetch_rtstruct_roi_masks(rtstruct, structure_map)
     if isinstance(rtss_mask, type(None)):
         logging.info(f'found no masks for {os.path.basename(output_fname).split(".")[0]} when converting from dicom to nifti.')
-    
+    logging.info(f'rtss_mask.shape = {rtss_mask.shape}')
     # To match with the dicom2nifti.dicom_series_to_nifti orientation
     rtss_mask = np.swapaxes(rtss_mask, 0, 1)
     
