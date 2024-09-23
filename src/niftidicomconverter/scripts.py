@@ -118,14 +118,16 @@ def batch_convert_dicom_to_nifti(base_path, output_base_dir, structure_map, df_k
                     logging.error(f'output_fname = {output_fname}')
                     logging.error(f'output_fname_rtss = {output_fname_rtss}')
             
+            dicom_image_base_path = os.path.dirname(dicom_image_files[0])
+
             # Collect metadata
             metadata = {
                 'PatientID': patient_id,
                 'StudyDate': study_date,
                 'Modality': modality,
-                'NiftiFilePath': output_fname,
-                'NiftiRTSSFilePath': output_fname_rtss if rtss else None,
-                'DicomStackPath': dicom_image_files,
+                'nii_file': output_fname,
+                'RTSS_nii_file': output_fname_rtss if rtss else None,
+                'DicomStackPath': dicom_image_base_path,
                 'DicomRTSSPath': rtss,
                 'SOPClassUID': sop_class_uid,
                 'OriginalResolution': original_resolution,
