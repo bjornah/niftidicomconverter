@@ -7,7 +7,7 @@ import tqdm
 from pydicom import dcmread
 from niftidicomconverter.DicomToNifti import convert_dicom_series_to_nifti_image, convert_dicom_rtss_to_nifti
 from niftidicomconverter.utils import correct_nifti_header, generate_dicom_filename
-from niftidicomconverter.dicomhandling import pair_dicom_series_v4
+from niftidicomconverter.dicomhandling import pair_dicom_series_v3
 from niftidicomconverter.niftihandling import resample_nifti_to_new_spacing_sitk
 
 def batch_convert_dicom_to_nifti(base_path, output_base_dir, structure_map, df_kwargs={}, new_spacing=None, base_path_regex=None):
@@ -30,7 +30,7 @@ def batch_convert_dicom_to_nifti(base_path, output_base_dir, structure_map, df_k
     if 'site' not in df_kwargs:
         df_kwargs['site'] = None
 
-    res_list = pair_dicom_series_v4(base_path, regex_pattern=base_path_regex)
+    res_list = pair_dicom_series_v3(base_path, regex_pattern=base_path_regex)
     
     if not os.path.exists(output_base_dir):
         os.makedirs(output_base_dir)

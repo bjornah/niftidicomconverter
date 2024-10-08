@@ -10,11 +10,11 @@ import tempfile
 import logging
 import glob
 
-from tqdm import tqdm
 from natsort import natsorted
 from typing import Tuple, Optional, List, Union, Dict
 from collections import defaultdict
-from pydicom.errors import InvalidDicomError
+
+
 
 
 # from niftidicomconverter.utils import are_numbers_within_factor
@@ -112,210 +112,95 @@ def pair_dicom_series_v2(folder, desired_sop_class_uid="1.2.840.10008.5.1.4.1.1.
     return paired_series
 
 
-# def pair_dicom_series_v3(folder: str, 
-#                          desired_sop_class_uid: str = "1.2.840.10008.5.1.4.1.1.4", 
-#                          regex_pattern: Optional[str] = None) -> List[Dict[str, Union[List[str], str]]]:
-#     """Pairs DICOM image series with RTSS files based on SeriesInstanceUID or FrameOfReferenceUID,
-#     with optional regex-based filtering.
+def pair_dicom_series_v3(folder: str, 
+                         desired_sop_class_uid: str = "1.2.840.10008.5.1.4.1.1.4", 
+                         regex_pattern: Optional[str] = None) -> List[Dict[str, Union[List[str], str]]]:
+    """Pairs DICOM image series with RTSS files based on SeriesInstanceUID or FrameOfReferenceUID,
+    with optional regex-based filtering.
     
-#     Args:
-#         folder (str): The folder containing DICOM files.
-#         desired_sop_class_uid (str): The SOP Class UID for image files.
-#         regex_pattern (Optional[str]): A regex pattern to filter subfolders and files.
-
-#     Returns:
-#         list: A list of dictionaries containing paired image and RTSS paths.
-#     """
-#     # Compile regex if provided
-#     regex = re.compile(regex_pattern) if regex_pattern else None
-
-#     # Initialize data structures
-#     series_data = defaultdict(lambda: {"frame_uid": None, "images": []})
-#     rtss_data = {}
-
-#     # Classify DICOM files
-#     for root, _, files in tqdm(os.walk(folder), desc="Classifying DICOM files"):
-#         # Skip folders that don't match the regex if provided
-#         if regex and not regex.search(root):
-#             continue
-
-#         for file in files:
-#             if not file.endswith(".dcm"):
-#                 continue
-
-#             file_path = os.path.join(root, file)
-#             # Skip files that don't match the regex if provided
-#             if regex and not regex.search(file_path):
-#                 continue
-
-#             try:
-#                 ds = pydicom.dcmread(file_path, stop_before_pixels=True)
-#                 if ds.SOPClassUID == desired_sop_class_uid:  # Image file
-#                     frame_uid = getattr(ds, "FrameOfReferenceUID", None)
-#                     series_uid = ds.SeriesInstanceUID
-#                     if frame_uid and series_uid:
-#                         series_data[series_uid]["frame_uid"] = frame_uid
-#                         series_data[series_uid]["images"].append(file_path)
-#                 elif ds.SOPClassUID == "1.2.840.10008.5.1.4.1.1.481.3":  # RTSS file
-#                     frame_uid = getattr(ds, "FrameOfReferenceUID", None)
-#                     referenced_series_uids = []
-#                     if hasattr(ds, "ReferencedFrameOfReferenceSequence"):
-#                         for item in ds.ReferencedFrameOfReferenceSequence:
-#                             if hasattr(item, "RTReferencedStudySequence"):
-#                                 for study_item in item.RTReferencedStudySequence:
-#                                     if hasattr(study_item, "RTReferencedSeriesSequence"):
-#                                         for series_item in study_item.RTReferencedSeriesSequence:
-#                                             referenced_series_uids.append(series_item.SeriesInstanceUID)
-#                     rtss_data[file_path] = {
-#                         "frame_uid": frame_uid,
-#                         "referenced_series_uids": referenced_series_uids
-#                     }
-#             except Exception:
-#                 logging.exception(f"Error processing file {file_path}")
-
-#     # Pair RTSS with Image Series
-#     paired_series = []
-#     for rtss_path, rtss_info in rtss_data.items():
-#         # Try to pair RTSS with specific series using SeriesInstanceUID references
-#         paired = False
-#         for series_uid in rtss_info["referenced_series_uids"]:
-#             if series_uid in series_data:
-#                 paired_series.append({
-#                     "image": natsorted(series_data[series_uid]["images"]),
-#                     "rtss": rtss_path
-#                 })
-#                 paired = True
-        
-#         # If no specific SeriesInstanceUID is referenced, fall back to FrameOfReferenceUID
-#         if not paired and rtss_info["frame_uid"]:
-#             for series_uid, series_info in series_data.items():
-#                 if series_info["frame_uid"] == rtss_info["frame_uid"]:
-#                     paired_series.append({
-#                         "image": natsorted(series_info["images"]),
-#                         "rtss": rtss_path
-#                     })
-#                     paired = True
-
-#     # Include series without RTSS if needed
-#     for series_uid, series_info in series_data.items():
-#         if not any(series['image'] == natsorted(series_info["images"]) for series in paired_series):
-#             paired_series.append({
-#                 "image": natsorted(series_info["images"]),
-#                 "rtss": None
-#             })
-
-#     return paired_series
-
-
-def pair_dicom_series_v4(
-    folder: str,
-    desired_sop_class_uid: str = "1.2.840.10008.5.1.4.1.1.4",
-    glob_pattern: Optional[str] = None
-) -> List[Dict[str, Union[List[str], str]]]:
-    """
-    Pairs DICOM image series with RTSS files based on SeriesInstanceUID or FrameOfReferenceUID,
-    with optional glob-based filtering.
-
     Args:
         folder (str): The folder containing DICOM files.
         desired_sop_class_uid (str): The SOP Class UID for image files.
-        glob_pattern (Optional[str]): A glob pattern to filter files.
+        regex_pattern (Optional[str]): A regex pattern to filter subfolders and files.
 
     Returns:
         list: A list of dictionaries containing paired image and RTSS paths.
     """
-    # Build the glob pattern
-    if glob_pattern:
-        search_pattern = os.path.join(folder, glob_pattern)
-    else:
-        search_pattern = os.path.join(folder, '**', '*.dcm')
-
-    # Get all DICOM files matching the pattern
-    dicom_files = glob.glob(search_pattern, recursive=True)
+    # Compile regex if provided
+    regex = re.compile(regex_pattern) if regex_pattern else None
 
     # Initialize data structures
     series_data = defaultdict(lambda: {"frame_uid": None, "images": []})
     rtss_data = {}
 
-    # Iterate over DICOM files with progress bar
-    for file_path in tqdm(dicom_files, desc="Processing DICOM files"):
-        try:
-            ds = pydicom.dcmread(
-                file_path,
-                stop_before_pixels=True,
-                specific_tags=[
-                    'SOPClassUID',
-                    'FrameOfReferenceUID',
-                    'SeriesInstanceUID',
-                    'ReferencedFrameOfReferenceSequence',
-                ],
-            )
+    # Classify DICOM files
+    for root, _, files in os.walk(folder):
+        # Skip folders that don't match the regex if provided
+        if regex and not regex.search(root):
+            continue
 
-            sop_class_uid = getattr(ds, 'SOPClassUID', None)
-            if sop_class_uid == desired_sop_class_uid:  # Image file
-                frame_uid = getattr(ds, "FrameOfReferenceUID", None)
-                series_uid = getattr(ds, "SeriesInstanceUID", None)
-                if frame_uid and series_uid:
-                    series_data[series_uid]["frame_uid"] = frame_uid
-                    series_data[series_uid]["images"].append(file_path)
-            elif sop_class_uid == "1.2.840.10008.5.1.4.1.1.481.3":  # RTSS file
-                frame_uid = getattr(ds, "FrameOfReferenceUID", None)
-                referenced_series_uids = set()
-                if hasattr(ds, "ReferencedFrameOfReferenceSequence"):
-                    for ref_frame_seq in ds.ReferencedFrameOfReferenceSequence:
-                        if hasattr(ref_frame_seq, "RTReferencedStudySequence"):
-                            for rt_ref_study_seq in ref_frame_seq.RTReferencedStudySequence:
-                                if hasattr(rt_ref_study_seq, "RTReferencedSeriesSequence"):
-                                    for rt_ref_series_seq in rt_ref_study_seq.RTReferencedSeriesSequence:
-                                        series_uid = getattr(rt_ref_series_seq, "SeriesInstanceUID", None)
-                                        if series_uid:
-                                            referenced_series_uids.add(series_uid)
-                rtss_data[file_path] = {
-                    "frame_uid": frame_uid,
-                    "referenced_series_uids": referenced_series_uids,
-                }
-        except InvalidDicomError:
-            logging.exception(f"Invalid DICOM file: {file_path}")
-        except Exception as e:
-            logging.exception(f"Error processing file {file_path}: {e}")
+        for file in files:
+            if not file.endswith(".dcm"):
+                continue
+
+            file_path = os.path.join(root, file)
+            # Skip files that don't match the regex if provided
+            if regex and not regex.search(file_path):
+                continue
+
+            try:
+                ds = pydicom.dcmread(file_path, stop_before_pixels=True)
+                if ds.SOPClassUID == desired_sop_class_uid:  # Image file
+                    frame_uid = getattr(ds, "FrameOfReferenceUID", None)
+                    series_uid = ds.SeriesInstanceUID
+                    if frame_uid and series_uid:
+                        series_data[series_uid]["frame_uid"] = frame_uid
+                        series_data[series_uid]["images"].append(file_path)
+                elif ds.SOPClassUID == "1.2.840.10008.5.1.4.1.1.481.3":  # RTSS file
+                    frame_uid = getattr(ds, "FrameOfReferenceUID", None)
+                    referenced_series_uids = []
+                    if hasattr(ds, "ReferencedFrameOfReferenceSequence"):
+                        for item in ds.ReferencedFrameOfReferenceSequence:
+                            if hasattr(item, "RTReferencedStudySequence"):
+                                for study_item in item.RTReferencedStudySequence:
+                                    if hasattr(study_item, "RTReferencedSeriesSequence"):
+                                        for series_item in study_item.RTReferencedSeriesSequence:
+                                            referenced_series_uids.append(series_item.SeriesInstanceUID)
+                    rtss_data[file_path] = {
+                        "frame_uid": frame_uid,
+                        "referenced_series_uids": referenced_series_uids
+                    }
+            except Exception:
+                logging.exception(f"Error processing file {file_path}")
 
     # Pair RTSS with Image Series
     paired_series = []
-    used_series_uids = set()
     for rtss_path, rtss_info in rtss_data.items():
         # Try to pair RTSS with specific series using SeriesInstanceUID references
         paired = False
         for series_uid in rtss_info["referenced_series_uids"]:
             if series_uid in series_data:
-                images_sorted = natsorted(series_data[series_uid]["images"])
                 paired_series.append({
-                    "image": images_sorted,
+                    "image": natsorted(series_data[series_uid]["images"]),
                     "rtss": rtss_path
                 })
-                used_series_uids.add(series_uid)
                 paired = True
-
+        
         # If no specific SeriesInstanceUID is referenced, fall back to FrameOfReferenceUID
         if not paired and rtss_info["frame_uid"]:
             for series_uid, series_info in series_data.items():
-                if (
-                    series_info["frame_uid"] == rtss_info["frame_uid"]
-                    and series_uid not in used_series_uids
-                ):
-                    images_sorted = natsorted(series_info["images"])
+                if series_info["frame_uid"] == rtss_info["frame_uid"]:
                     paired_series.append({
-                        "image": images_sorted,
+                        "image": natsorted(series_info["images"]),
                         "rtss": rtss_path
                     })
-                    used_series_uids.add(series_uid)
                     paired = True
 
-    # Include series without RTSS
+    # Include series without RTSS if needed
     for series_uid, series_info in series_data.items():
-        if series_uid not in used_series_uids:
-            images_sorted = natsorted(series_info["images"])
+        if not any(series['image'] == natsorted(series_info["images"]) for series in paired_series):
             paired_series.append({
-                "image": images_sorted,
+                "image": natsorted(series_info["images"]),
                 "rtss": None
             })
 

@@ -34,18 +34,18 @@ def convert_dicom_series_to_nifti_image(dicom_image_files, output_fname):
     if not isinstance(dicom_image_files, list):
         dicom_image_files = [dicom_image_files]
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        # copy all image files into the temp directory
-        for image_file in dicom_image_files:
-            copy_file_safely(image_file, temp_dir)
-            
-        nii_result = dicom2nifti.dicom_series_to_nifti(
-            temp_dir,
-            output_fname,
-            reorient_nifti=False,
-        )
+    temp_dir = tempfile.mkdtemp()
+    # copy all image files into the temp directory
+    for image_file in dicom_image_files:
+        copy_file_safely(image_file, temp_dir)
+        
+    nii_result = dicom2nifti.dicom_series_to_nifti(
+        temp_dir,
+        output_fname,
+        reorient_nifti=False,
+    )
     
-        logging.info(f'Successfully converted DICOM series to NIfTI for {os.path.dirname(output_fname)}')
+    logging.info(f'Successfully converted DICOM series to NIfTI for {os.path.dirname(output_fname)}')
     
 
 def convert_dicom_to_nifti(dicom_path: Union[str, List[str]], file_path: str, loader: str = 'sitk', **kwargs) -> None:
@@ -93,33 +93,33 @@ def convert_dicom_rtss_to_nifti(dicom_image_files, rtss, output_fname, structure
         None
     """
     
-    with tempfile.TemporaryDirectory() as temp_dir:
-        # copy all image files into the temp directory
-        copy_file_safely(rtss, temp_dir)
-        rtss_temp_file = os.path.join(temp_dir, os.path.basename(rtss))
+    temp_dir = tempfile.mkdtemp()
+    # copy all image files into the temp directory
+    copy_file_safely(rtss, temp_dir)
+    rtss_temp_file = os.path.join(temp_dir, os.path.basename(rtss))
+    
+    for image_file in dicom_image_files:
+        copy_file_safely(image_file, temp_dir)
         
-        for image_file in dicom_image_files:
-            copy_file_safely(image_file, temp_dir)
-            
-        rtstruct = RTStructBuilder.create_from(
-            dicom_series_path=temp_dir,
-            rt_struct_path=rtss_temp_file,
-        )
-        
-        rtss_mask = fetch_rtstruct_roi_masks(rtstruct, structure_map)
-        if isinstance(rtss_mask, type(None)):
-            logging.info(f'found no masks for {os.path.basename(output_fname).split(".")[0]} when converting from dicom to nifti.')
-        logging.info(f'rtss_mask.shape = {rtss_mask.shape}')
-        # To match with the dicom2nifti.dicom_series_to_nifti orientation
-        rtss_mask = np.swapaxes(rtss_mask, 0, 1)
-        
-        rtss_mask = rtss_mask.astype(np.uint8)
+    rtstruct = RTStructBuilder.create_from(
+        dicom_series_path=temp_dir,
+        rt_struct_path=rtss_temp_file,
+    )
+    
+    rtss_mask = fetch_rtstruct_roi_masks(rtstruct, structure_map)
+    if isinstance(rtss_mask, type(None)):
+        logging.info(f'found no masks for {os.path.basename(output_fname).split(".")[0]} when converting from dicom to nifti.')
+    logging.info(f'rtss_mask.shape = {rtss_mask.shape}')
+    # To match with the dicom2nifti.dicom_series_to_nifti orientation
+    rtss_mask = np.swapaxes(rtss_mask, 0, 1)
+    
+    rtss_mask = rtss_mask.astype(np.uint8)
 
-        rtss_nii = nib.Nifti1Image(rtss_mask, affine=np.eye(4))
-        
-        nib.save(rtss_nii, output_fname)
-        
-        logging.info(f'Successfully converted DICOM RTSS to NIfTI for {os.path.dirname(rtss)}')
+    rtss_nii = nib.Nifti1Image(rtss_mask, affine=np.eye(4))
+    
+    nib.save(rtss_nii, output_fname)
+    
+    logging.info(f'Successfully converted DICOM RTSS to NIfTI for {os.path.dirname(rtss)}')
 
 
 ################# another way to convert rtss to nifti #################
