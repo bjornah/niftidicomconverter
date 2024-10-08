@@ -10,7 +10,7 @@ from niftidicomconverter.utils import correct_nifti_header, generate_dicom_filen
 from niftidicomconverter.dicomhandling import pair_dicom_series_v4
 from niftidicomconverter.niftihandling import resample_nifti_to_new_spacing_sitk
 
-def batch_convert_dicom_to_nifti(base_path, output_base_dir, structure_map, df_kwargs={}, new_spacing=None, base_path_regex=None):
+def batch_convert_dicom_to_nifti(base_path, output_base_dir, structure_map, df_kwargs={}, new_spacing=None, glob_pattern=None):
     """
     Batch converts DICOM files to NIfTI format. Searches through base_path recursively and identifies
     DICOM series. Converts the DICOM series to NIfTI format and saves them in the output_base_dir, along 
@@ -30,7 +30,7 @@ def batch_convert_dicom_to_nifti(base_path, output_base_dir, structure_map, df_k
     if 'site' not in df_kwargs:
         df_kwargs['site'] = None
 
-    res_list = pair_dicom_series_v4(base_path, regex_pattern=base_path_regex)
+    res_list = pair_dicom_series_v4(base_path, glob_pattern=glob_pattern)
     
     if not os.path.exists(output_base_dir):
         os.makedirs(output_base_dir)
