@@ -11,13 +11,14 @@ import tempfile
 import logging
 import glob
 
+from pathlib import Path
 from tqdm import tqdm
 from natsort import natsorted
 from typing import Tuple, Optional, List, Union, Dict, Any
 from collections import defaultdict
 from pydicom.errors import InvalidDicomError
 
-def filter_dicom_files(subdirectory: str, glob_pattern: Optional[str], existing_database_df: Optional[pd.DataFrame]) -> List[str]:
+def filter_dicom_files(dicom_files, existing_database_df: Optional[pd.DataFrame]) -> List[str]:
     """
     Filters out already processed DICOM files based on the existing database.
 
@@ -29,14 +30,14 @@ def filter_dicom_files(subdirectory: str, glob_pattern: Optional[str], existing_
     Returns:
         List[str]: A list of DICOM file paths to be processed.
     """
-    # Build the search pattern
-    if glob_pattern:
-        search_pattern = os.path.join(subdirectory, glob_pattern)
-    else:
-        search_pattern = os.path.join(subdirectory, '**', '*.dcm')
+    # # Build the search pattern
+    # if glob_pattern:
+    #     search_pattern = os.path.join(subdirectory, glob_pattern)
+    # else:
+    #     search_pattern = os.path.join(subdirectory, '**', '*.dcm')
 
-    dicom_files = glob.glob(search_pattern, recursive=True)
-    logging.info(f"Found {len(dicom_files)} DICOM files in subdirectory: {subdirectory}")
+    # dicom_files = glob.glob(search_pattern, recursive=True)
+    # logging.info(f"Found {len(dicom_files)} DICOM files in subdirectory: {subdirectory}")
 
     # Filter out already processed files
     if existing_database_df is not None and not existing_database_df.empty:
@@ -108,11 +109,93 @@ def pair_dicom_series_and_rtss(
 
     return series_data, rtss_data
 
+def get_files_to_process(
+    top_level_dir,
+    folder_pattern='*',
+    file_pattern='*',
+    incremental=False,
+    subdir_level=1
+):
+    """
+    Converts DICOM files to NIfTI format.
+
+    Parameters:
+    - top_level_dir (str): The top-level directory to search for DICOM files.
+    - folder_pattern (str): Glob pattern to filter folders (at level subdir_level in case of incremental).
+    - file_pattern (str): Glob pattern to filter files.
+    - incremental (bool): If True, processes files incrementally in batches.
+    - subdir_level (int): The directory depth level to batch processing (0 meaning first level of subfolders).
+    """
+    top_level_path = Path(top_level_dir)
+    grouped_files = None
+
+    if incremental:
+        # Get subfolders at the specified batch level using a generator
+        subfolders = (
+            sf for sf in get_subfolders_at_level(top_level_path, subdir_level)
+            if sf.match(folder_pattern)
+        )
+
+        # Add progress bar to the subfolders loop
+        for subfolder in tqdm(subfolders, desc='Processing Batches', unit='subfolder'):
+            # Collect files matching the file pattern within the subfolder
+            files_to_process = list(subfolder.glob('**/' + file_pattern))
+            if files_to_process:
+                print(f"\nProcessing batch in {subfolder}")
+                # Optionally, add a progress bar for collecting files
+                files_to_process = list(tqdm(
+                    files_to_process,
+                    desc=f'Collecting files in {subfolder}',
+                    unit='file'
+                ))
+    else:
+        # Use a generator to process folders as we find them
+        files_to_process = []
+        matching_folders = (
+            p for p in top_level_path.glob('**/' + folder_pattern) if p.is_dir()
+        )
+
+        # Use tqdm to add a progress bar
+        for folder in tqdm(matching_folders, desc='Scanning Folders', unit='folder'):
+            # Collect files matching the file_pattern within the folder
+            files_in_folder = list(folder.glob('**/' + file_pattern))
+            files_to_process.extend(files_in_folder)
+
+        if files_to_process:
+            print(f"\Found {len(files_to_process)} files in folders matching '{folder_pattern}' in {top_level_dir}")
+        else:
+            print("No files found to process.")
+    return files_to_process
+
+
+def get_subfolders_at_level(top_path, level):
+    """
+    Returns a generator of subfolders at the specified depth level relative to top_path.
+
+    Parameters:
+    - top_path (Path): The top-level Path object.
+    - level (int): The depth level of subfolders to retrieve.
+
+    Returns:
+    - Generator[Path]: A generator of Path objects representing subfolders at the specified level.
+    """
+    top_path = Path(top_path)
+    start_depth = len(top_path.parts)
+    for root, dirs, files in os.walk(top_path):
+        current_depth = len(Path(root).parts)
+        if current_depth - start_depth == level:
+            # At the desired level, yield all directories
+            for dir_name in dirs:
+                yield Path(root) / dir_name
+            # Do not recurse further into subdirectories
+            dirs.clear()  # Prevent os.walk from going deeper
+        elif current_depth - start_depth > level:
+            # Should not happen due to dirs.clear(), but just in case
+            dirs.clear()
 
 def pair_dicom_series_v5(
-    folder: str,
+    dicom_files: List[str],
     desired_sop_class_uid: str = "1.2.840.10008.5.1.4.1.1.4",
-    glob_pattern: Optional[str] = None,
     existing_database_df: Optional[pd.DataFrame] = None
 ) -> List[Dict[str, Union[List[str], str]]]:
     """
@@ -131,7 +214,7 @@ def pair_dicom_series_v5(
     """
     paired_series = []
 
-    dicom_files = filter_dicom_files(folder, glob_pattern, existing_database_df)
+    dicom_files = filter_dicom_files(dicom_files, existing_database_df)
     series_data, rtss_data = pair_dicom_series_and_rtss(dicom_files, desired_sop_class_uid)
 
     # Pair Image Series with RTSS
