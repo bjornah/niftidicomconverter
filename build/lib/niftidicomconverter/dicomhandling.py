@@ -4,205 +4,253 @@ import re
 import numpy as np
 import SimpleITK as sitk
 import nibabel as nib
+import pandas as pd
 
 import pydicom
 import tempfile
 import logging
 import glob
 
+from pathlib import Path
+from tqdm import tqdm
 from natsort import natsorted
-from typing import Tuple, Optional, List, Union, Dict
+from typing import Tuple, Optional, List, Union, Dict, Any
 from collections import defaultdict
+from pydicom.errors import InvalidDicomError
 
-
-
-
-# from niftidicomconverter.utils import are_numbers_within_factor
-
-
-def pair_dicom_series(folder, desired_sop_class_uid="1.2.840.10008.5.1.4.1.1.4"):
+def filter_dicom_files(dicom_files, existing_database_df: Optional[pd.DataFrame]) -> List[str]:
     """
-    Searches a folder recursively for DICOM files, categorizes them into images of a specified type or RTSS files
-    based on SOPClassUID, and groups them by SeriesInstanceUID into series. It uses FrameOfReferenceUID to associate
-    RTSS files with their corresponding image series.
+    Filters out already processed DICOM files based on the existing database.
 
-    Parameters:
-    - folder (str): The path to the folder containing DICOM files.
-    - desired_sop_class_uid (str): The SOPClassUID for the desired image type, default is for standard MR images.
+    Args:
+        subdirectory (str): The current subdirectory to process.
+        glob_pattern (Optional[str]): A glob pattern to filter files.
+        existing_database_df (Optional[pd.DataFrame]): Existing metadata DataFrame to skip already processed files.
 
     Returns:
-    - list: A list of dictionaries, each representing a series with 'image' and 'rtss' keys.
+        List[str]: A list of DICOM file paths to be processed.
     """
-    dicom_files = glob.glob(os.path.join(folder, '**', '*.dcm'), recursive=True)
-    series = {}
-    frame_of_reference_mapping = {}
+    # # Build the search pattern
+    # if glob_pattern:
+    #     search_pattern = os.path.join(subdirectory, glob_pattern)
+    # else:
+    #     search_pattern = os.path.join(subdirectory, '**', '*.dcm')
 
-    for file_path in dicom_files:
+    # dicom_files = glob.glob(search_pattern, recursive=True)
+    # logging.info(f"Found {len(dicom_files)} DICOM files in subdirectory: {subdirectory}")
+
+    # Filter out already processed files
+    if existing_database_df is not None and not existing_database_df.empty:
+        processed_paths = set(existing_database_df['DicomStackPath'].dropna().unique())
+        dicom_files = [f for f in dicom_files if os.path.dirname(f) not in processed_paths]
+        logging.info(f"After filtering, {len(dicom_files)} DICOM files remain to be processed.")
+
+    return dicom_files
+
+
+def pair_dicom_series_and_rtss(
+    dicom_files: List[str], desired_sop_class_uid: str
+) -> Tuple[Dict[str, Dict[str, Union[str, List[str]]]], Dict[str, Dict[str, Union[str, set]]]]:
+    """
+    Pairs DICOM image series with RTSS files based on SeriesInstanceUID or FrameOfReferenceUID.
+
+    Args:
+        dicom_files (List[str]): List of DICOM file paths to process.
+        desired_sop_class_uid (str): The SOP Class UID for image files.
+
+    Returns:
+        Tuple: Two dictionaries containing series data and RTSS data.
+    """
+    series_data = defaultdict(lambda: {"frame_uid": None, "images": []})
+    rtss_data = {}
+
+    # Iterate over DICOM files
+    for file_path in tqdm(dicom_files, desc="Processing DICOM files", leave=False):
+        logging.debug(f"Processing file: {file_path}")
         try:
-            ds = pydicom.dcmread(file_path, stop_before_pixels=True)
-            series_instance_uid = ds.SeriesInstanceUID #unique id for an image series
-            sop_class_uid = ds.SOPClassUID #the type of dicom file it is
+            ds = pydicom.dcmread(
+                file_path,
+                stop_before_pixels=True,
+                specific_tags=[ 
+                    'SOPClassUID',
+                    'FrameOfReferenceUID',
+                    'SeriesInstanceUID',
+                    'ReferencedFrameOfReferenceSequence',
+                ],
+            )
+            sop_class_uid = getattr(ds, 'SOPClassUID', None)
+            frame_uid = getattr(ds, 'FrameOfReferenceUID', None)
+            series_uid = getattr(ds, 'SeriesInstanceUID', None)
 
-            if sop_class_uid == desired_sop_class_uid: # check if file is an image of correct modality 
-                if series_instance_uid not in series:
-                    series[series_instance_uid] = {'image': [], 'rtss': None}
-                    if 'FrameOfReferenceUID' in ds:
-                        frame_of_reference_mapping[series_instance_uid] = ds.FrameOfReferenceUID
-                    else:
-                        logging.warning(f'No FrameOfReferenceUID found for image file {file_path}')
-                series[series_instance_uid]['image'].append(file_path)
-                
-            elif sop_class_uid == "1.2.840.10008.5.1.4.1.1.481.3":  # SOP Class UID for RTSS
-                # For RTSS, find matching series by FrameOfReferenceUID
-                if 'FrameOfReferenceUID' in ds:
-                    frame_of_reference_uid = ds.FrameOfReferenceUID
-                    matching_series = [key for key, value in frame_of_reference_mapping.items() if value == frame_of_reference_uid]
-                else:
-                    logging.warning(f'No FrameOfReferenceUID found for RTSS file {file_path}')
-                if matching_series:
-                    series[matching_series[0]]['rtss'] = file_path
+            if sop_class_uid == desired_sop_class_uid and frame_uid and series_uid:  # Image file
+                series_data[series_uid]["frame_uid"] = frame_uid
+                series_data[series_uid]["images"].append(file_path)
+                logging.debug(f"Added image file to series: {series_uid}, frame UID: {frame_uid}")
+            elif sop_class_uid == "1.2.840.10008.5.1.4.1.1.481.3":  # RTSS file
+                referenced_series_uids = set()
+                if hasattr(ds, "ReferencedFrameOfReferenceSequence"):
+                    for ref_frame_seq in ds.ReferencedFrameOfReferenceSequence:
+                        if hasattr(ref_frame_seq, "RTReferencedStudySequence"):
+                            for rt_ref_study_seq in ref_frame_seq.RTReferencedStudySequence:
+                                if hasattr(rt_ref_study_seq, "RTReferencedSeriesSequence"):
+                                    for rt_ref_series_seq in rt_ref_study_seq.RTReferencedSeriesSequence:
+                                        series_uid = getattr(rt_ref_series_seq, "SeriesInstanceUID", None)
+                                        if series_uid:
+                                            referenced_series_uids.add(series_uid)
+                rtss_data[file_path] = {
+                    "frame_uid": frame_uid,
+                    "referenced_series_uids": referenced_series_uids,
+                }
+                logging.debug(f"Added RTSS file: {file_path}, frame UID: {frame_uid}, referenced series: {referenced_series_uids}")
+        except InvalidDicomError:
+            logging.exception(f"Invalid DICOM file: {file_path}")
         except Exception as e:
             logging.exception(f"Error processing file {file_path}: {e}")
 
-    # Convert to list of dicts format and sort images
-    paired_series = [{'image': natsorted(v['image']), 'rtss': v['rtss']} for v in series.values()]
+    return series_data, rtss_data
 
-    return paired_series
+def get_files_to_process(
+    top_level_dir,
+    folder_pattern='*',
+    file_pattern='*',
+    incremental=False,
+    subdir_level=1
+):
+    """
+    Converts DICOM files to NIfTI format.
 
-def pair_dicom_series_v2(folder, desired_sop_class_uid="1.2.840.10008.5.1.4.1.1.4"):
-    # Initialize data structures
-    image_files = defaultdict(list)
-    rtss_files = {}
-    frame_to_series_mapping = defaultdict(set)
+    Parameters:
+    - top_level_dir (str): The top-level directory to search for DICOM files.
+    - folder_pattern (str): Glob pattern to filter folders (at level subdir_level in case of incremental).
+    - file_pattern (str): Glob pattern to filter files.
+    - incremental (bool): If True, processes files incrementally in batches.
+    - subdir_level (int): The directory depth level to batch processing (0 meaning first level of subfolders).
+    """
+    top_level_path = Path(top_level_dir)
+    grouped_files = None
 
-    # Classify DICOM files
-    dicom_files = glob.glob(os.path.join(folder, '**', '*.dcm'), recursive=True)
-    for file_path in dicom_files:
-        try:
-            ds = pydicom.dcmread(file_path, stop_before_pixels=True)
-            if ds.SOPClassUID == desired_sop_class_uid:  # Image file
-                series_instance_uid = ds.SeriesInstanceUID
-                image_files[series_instance_uid].append(file_path)
-                if 'FrameOfReferenceUID' in ds:
-                    frame_to_series_mapping[ds.FrameOfReferenceUID].add(series_instance_uid)
-            elif ds.SOPClassUID == "1.2.840.10008.5.1.4.1.1.481.3":  # RTSS file
-                if 'FrameOfReferenceUID' in ds:
-                    rtss_files[ds.FrameOfReferenceUID] = file_path
-        except Exception as e:
-            logging.exception(f"Error processing file {file_path}: {e}")
+    if incremental:
+        # Get subfolders at the specified batch level using a generator
+        subfolders = (
+            sf for sf in get_subfolders_at_level(top_level_path, subdir_level)
+            if sf.match(folder_pattern)
+        )
 
-    # Associate RTSS files with image series
-    paired_series = []
-    for frame_of_reference_uid, rtss_path in rtss_files.items():
-        for series_instance_uid in frame_to_series_mapping.get(frame_of_reference_uid, []):
-            if series_instance_uid in image_files:
-                paired_series.append({
-                    'image': natsorted(image_files[series_instance_uid]),
-                    'rtss': rtss_path
-                })
+        # Add progress bar to the subfolders loop
+        for subfolder in tqdm(subfolders, desc='Processing Batches', unit='subfolder'):
+            # Collect files matching the file pattern within the subfolder
+            files_to_process = list(subfolder.glob('**/' + file_pattern))
+            if files_to_process:
+                print(f"\nProcessing batch in {subfolder}")
+                # Optionally, add a progress bar for collecting files
+                files_to_process = list(tqdm(
+                    files_to_process,
+                    desc=f'Collecting files in {subfolder}',
+                    unit='file'
+                ))
+    else:
+        # Use a generator to process folders as we find them
+        files_to_process = []
+        matching_folders = (
+            p for p in top_level_path.glob('**/' + folder_pattern) if p.is_dir()
+        )
 
-    # Include series without RTSS if needed
-    for series_instance_uid, image_paths in image_files.items():
-        if not any(series['image'] == natsorted(image_paths) for series in paired_series):
-            paired_series.append({
-                'image': natsorted(image_paths),
-                'rtss': None
-            })
+        # Use tqdm to add a progress bar
+        for folder in tqdm(matching_folders, desc='Scanning Folders', unit='folder'):
+            # Collect files matching the file_pattern within the folder
+            files_in_folder = list(folder.glob('**/' + file_pattern))
+            files_to_process.extend(files_in_folder)
 
-    return paired_series
+        if files_to_process:
+            print(f"\Found {len(files_to_process)} files in folders matching '{folder_pattern}' in {top_level_dir}")
+        else:
+            print("No files found to process.")
+    return files_to_process
 
 
-def pair_dicom_series_v3(folder: str, 
-                         desired_sop_class_uid: str = "1.2.840.10008.5.1.4.1.1.4", 
-                         regex_pattern: Optional[str] = None) -> List[Dict[str, Union[List[str], str]]]:
-    """Pairs DICOM image series with RTSS files based on SeriesInstanceUID or FrameOfReferenceUID,
-    with optional regex-based filtering.
-    
+def get_subfolders_at_level(top_path, level):
+    """
+    Returns a generator of subfolders at the specified depth level relative to top_path.
+
+    Parameters:
+    - top_path (Path): The top-level Path object.
+    - level (int): The depth level of subfolders to retrieve.
+
+    Returns:
+    - Generator[Path]: A generator of Path objects representing subfolders at the specified level.
+    """
+    top_path = Path(top_path)
+    start_depth = len(top_path.parts)
+    for root, dirs, files in os.walk(top_path):
+        current_depth = len(Path(root).parts)
+        if current_depth - start_depth == level:
+            # At the desired level, yield all directories
+            for dir_name in dirs:
+                yield Path(root) / dir_name
+            # Do not recurse further into subdirectories
+            dirs.clear()  # Prevent os.walk from going deeper
+        elif current_depth - start_depth > level:
+            # Should not happen due to dirs.clear(), but just in case
+            dirs.clear()
+
+def pair_dicom_series_v5(
+    dicom_files: List[str],
+    desired_sop_class_uid: str = "1.2.840.10008.5.1.4.1.1.4",
+    existing_database_df: Optional[pd.DataFrame] = None
+) -> List[Dict[str, Union[List[str], str]]]:
+    """
+    Pairs DICOM image series with RTSS files based on SeriesInstanceUID or FrameOfReferenceUID,
+    with optional glob-based filtering and incremental processing.
+
     Args:
         folder (str): The folder containing DICOM files.
         desired_sop_class_uid (str): The SOP Class UID for image files.
-        regex_pattern (Optional[str]): A regex pattern to filter subfolders and files.
+        glob_pattern (Optional[str]): A glob pattern to filter files.
+        convert_by_subfolders (bool): If True, process each subdirectory incrementally.
+        existing_database_df (Optional[pd.DataFrame]): Existing metadata DataFrame to skip already processed files.
 
     Returns:
         list: A list of dictionaries containing paired image and RTSS paths.
     """
-    # Compile regex if provided
-    regex = re.compile(regex_pattern) if regex_pattern else None
-
-    # Initialize data structures
-    series_data = defaultdict(lambda: {"frame_uid": None, "images": []})
-    rtss_data = {}
-
-    # Classify DICOM files
-    for root, _, files in os.walk(folder):
-        # Skip folders that don't match the regex if provided
-        if regex and not regex.search(root):
-            continue
-
-        for file in files:
-            if not file.endswith(".dcm"):
-                continue
-
-            file_path = os.path.join(root, file)
-            # Skip files that don't match the regex if provided
-            if regex and not regex.search(file_path):
-                continue
-
-            try:
-                ds = pydicom.dcmread(file_path, stop_before_pixels=True)
-                if ds.SOPClassUID == desired_sop_class_uid:  # Image file
-                    frame_uid = getattr(ds, "FrameOfReferenceUID", None)
-                    series_uid = ds.SeriesInstanceUID
-                    if frame_uid and series_uid:
-                        series_data[series_uid]["frame_uid"] = frame_uid
-                        series_data[series_uid]["images"].append(file_path)
-                elif ds.SOPClassUID == "1.2.840.10008.5.1.4.1.1.481.3":  # RTSS file
-                    frame_uid = getattr(ds, "FrameOfReferenceUID", None)
-                    referenced_series_uids = []
-                    if hasattr(ds, "ReferencedFrameOfReferenceSequence"):
-                        for item in ds.ReferencedFrameOfReferenceSequence:
-                            if hasattr(item, "RTReferencedStudySequence"):
-                                for study_item in item.RTReferencedStudySequence:
-                                    if hasattr(study_item, "RTReferencedSeriesSequence"):
-                                        for series_item in study_item.RTReferencedSeriesSequence:
-                                            referenced_series_uids.append(series_item.SeriesInstanceUID)
-                    rtss_data[file_path] = {
-                        "frame_uid": frame_uid,
-                        "referenced_series_uids": referenced_series_uids
-                    }
-            except Exception:
-                logging.exception(f"Error processing file {file_path}")
-
-    # Pair RTSS with Image Series
     paired_series = []
-    for rtss_path, rtss_info in rtss_data.items():
-        # Try to pair RTSS with specific series using SeriesInstanceUID references
+
+    dicom_files = filter_dicom_files(dicom_files, existing_database_df)
+    series_data, rtss_data = pair_dicom_series_and_rtss(dicom_files, desired_sop_class_uid)
+
+    # Pair Image Series with RTSS
+    for series_uid, series_info in series_data.items():
         paired = False
-        for series_uid in rtss_info["referenced_series_uids"]:
-            if series_uid in series_data:
+        for rtss_path, rtss_info in rtss_data.items():
+            # Try to pair Image Series with RTSS using SeriesInstanceUID references
+            if series_uid in rtss_info["referenced_series_uids"]:
+                images_sorted = natsorted(series_info["images"])
                 paired_series.append({
-                    "image": natsorted(series_data[series_uid]["images"]),
+                    "image": images_sorted,
                     "rtss": rtss_path
                 })
+                logging.info(f"Paired series {series_uid} with RTSS file: {rtss_path}")
                 paired = True
-        
-        # If no specific SeriesInstanceUID is referenced, fall back to FrameOfReferenceUID
-        if not paired and rtss_info["frame_uid"]:
-            for series_uid, series_info in series_data.items():
-                if series_info["frame_uid"] == rtss_info["frame_uid"]:
-                    paired_series.append({
-                        "image": natsorted(series_info["images"]),
-                        "rtss": rtss_path
-                    })
-                    paired = True
 
-    # Include series without RTSS if needed
-    for series_uid, series_info in series_data.items():
-        if not any(series['image'] == natsorted(series_info["images"]) for series in paired_series):
+            # If no specific SeriesInstanceUID is referenced, fall back to FrameOfReferenceUID
+            elif (
+                series_info["frame_uid"] == rtss_info["frame_uid"]
+            ):
+                images_sorted = natsorted(series_info["images"])
+                paired_series.append({
+                    "image": images_sorted,
+                    "rtss": rtss_path
+                })
+                logging.info(f"Paired series {series_uid} with RTSS file (by FrameOfReferenceUID): {rtss_path}")
+                paired = True
+
+        # Include series without RTSS if no match found
+        if not paired:
+            images_sorted = natsorted(series_info["images"])
             paired_series.append({
-                "image": natsorted(series_info["images"]),
+                "image": images_sorted,
                 "rtss": None
             })
+            logging.info(f"Series {series_uid} has no matching RTSS file")
 
     return paired_series
 
